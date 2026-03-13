@@ -3,6 +3,8 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import PageShell from "../components/PageShell";
 import { signup } from "../api/auth";
 import { getDemoUser, setDemoUser } from "../auth/demoAuth";
+import { PET_TEMPLATES } from "../gamification/catalog";
+import { ensureGamificationState } from "../gamification/store";
 
 export default function SignupPage() {
   const existingUser = getDemoUser();
@@ -11,6 +13,7 @@ export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [selectedPetId, setSelectedPetId] = useState(PET_TEMPLATES[0].id);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +48,7 @@ export default function SignupPage() {
         password,
       });
       setDemoUser(res.user);
+      ensureGamificationState(res.user.user_id, selectedPetId);
       navigate("/app/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create account.");
@@ -91,6 +95,45 @@ export default function SignupPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               autoComplete="new-password"
             />
+
+            <div className="space-y-3 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <div>
+                <div className="text-sm font-medium text-gray-900">Choose your starter pet</div>
+                <div className="mt-1 text-xs text-gray-500">
+                  One pet per account for now. Accessories and badges unlock later in the app.
+                </div>
+              </div>
+              <div className="grid gap-3">
+                {PET_TEMPLATES.map((pet) => {
+                  const isSelected = pet.id === selectedPetId;
+                  return (
+                    <button
+                      key={pet.id}
+                      type="button"
+                      onClick={() => setSelectedPetId(pet.id)}
+                      className={`rounded-2xl border p-3 text-left transition ${
+                        isSelected
+                          ? "border-emerald-400 bg-emerald-50"
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={pet.image}
+                          alt={pet.name}
+                          className="h-16 w-16 rounded-xl bg-white object-cover"
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{pet.name}</div>
+                          <div className="text-xs text-gray-600">{pet.tagline}</div>
+                          <div className="mt-1 text-xs text-gray-500">{pet.description}</div>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             <button
               type="submit"

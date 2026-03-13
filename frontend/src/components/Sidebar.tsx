@@ -7,6 +7,8 @@ type NavItem = {
 
 const baseNavItems: NavItem[] = [
   { label: "Dashboard", href: "/app/dashboard" },
+  { label: "Pets", href: "/app/pets" },
+  { label: "Shop", href: "/app/shop" },
   { label: "Groups", href: "/app/groups" },
   { label: "Challenges", href: "/app/challenges" },
   { label: "Log action", href: "/app/log-action" },

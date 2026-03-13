@@ -12,6 +12,8 @@ import HomePage from "./pages/HomePage";
 import ModerationPage from "./pages/ModerationPage";
 import RequireAuth from "./auth/RequireAuth";
 import SignupPage from "./pages/SignupPage";
+import PetsPage from "./pages/PetsPage";
+import ShopPage from "./pages/ShopPage";
 
 export default function App() {
   return (
@@ -32,6 +34,8 @@ export default function App() {
           <Route path="moderation" element={<ModerationPage />} />
           <Route path="log-action" element={<LogActionPage />} />
           <Route path="leaderboards" element={<LeaderboardsPage />} />
+          <Route path="pets" element={<PetsPage />} />
+          <Route path="shop" element={<ShopPage />} />
           <Route index element={<Navigate to="/app/dashboard" replace />} />
         </Route>
       </Route>
