@@ -11,12 +11,14 @@ import LeaderboardsPage from "./pages/LeaderboardsPage";
 import HomePage from "./pages/HomePage";
 import ModerationPage from "./pages/ModerationPage";
 import RequireAuth from "./auth/RequireAuth";
+import SignupPage from "./pages/SignupPage";
 
 export default function App() {
   return (
     <Routes>
       {/* Public */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
       <Route path="/home" element={<HomePage />} />
       <Route path="/" element={<HomePage />} />
 

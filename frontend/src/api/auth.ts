@@ -10,9 +10,22 @@ export type LoginResponse = {
   };
 };
 
+export type SignupRequest = {
+  username: string;
+  display_name?: string;
+  password: string;
+};
+
 export function loginDemo(username: string, password: string) {
   return apiFetch<LoginResponse>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
+  });
+}
+
+export function signup(body: SignupRequest) {
+  return apiFetch<LoginResponse>("/auth/signup", {
+    method: "POST",
+    body: JSON.stringify(body),
   });
 }

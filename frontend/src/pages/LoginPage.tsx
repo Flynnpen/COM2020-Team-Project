@@ -1,15 +1,20 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import PageShell from "../components/PageShell";
 import { loginDemo } from "../api/auth";
-import { setDemoUser } from "../auth/demoAuth";
+import { getDemoUser, setDemoUser } from "../auth/demoAuth";
 
 export default function LoginPage() {
+  const existingUser = getDemoUser();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (existingUser) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,8 +41,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-b from-green-50/40 to-white p-6">
       <div className="mx-auto max-w-md rounded-2xl border border-gray-100 bg-white/80 p-6 shadow-sm">
         <PageShell
-          title="Login"
-          subtitle="Account creation coming in the second sprint"
+          title="Log in"
+          subtitle="Pick up where you left off and keep your carbon challenge going."
         >
           <form className="space-y-3" onSubmit={onSubmit}>
             <input
@@ -71,6 +76,11 @@ export default function LoginPage() {
             )}
 
             <p className="text-xs text-gray-500">
+              Need an account?{" "}
+              <Link to="/signup" className="font-medium text-emerald-700 hover:text-emerald-600">
+                Create one here
+              </Link>
+              .
             </p>
           </form>
         </PageShell>

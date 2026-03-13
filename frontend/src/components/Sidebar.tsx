@@ -1,4 +1,4 @@
-import { getDemoUser } from "../auth/demoAuth";
+import { clearDemoUser, getDemoUser } from "../auth/demoAuth";
 
 type NavItem = {
   label: string;
@@ -27,7 +27,7 @@ export default function Sidebar() {
     : baseNavItems;
 
   function handleLogout() {
-    localStorage.removeItem("demo_user");
+    clearDemoUser();
     window.location.href = "/login";
   }
 

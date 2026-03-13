@@ -3,7 +3,7 @@ import Sidebar from "../components/Sidebar";
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50/40 to-white">
+    <div className="min-h-screen bg-gray-50">
       <div className="mx-auto flex max-w-6xl">
         <Sidebar />
 
