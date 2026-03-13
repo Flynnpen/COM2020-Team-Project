@@ -85,114 +85,135 @@ export default function LogActionPage() {
   return (
     <PageShell
       title="Log action"
-      subtitle="Log a real-world action and see how the estimate is calculated."
+      subtitle="Record a real-world sustainability action and immediately see both the estimate and your companion reward."
     >
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-4 rounded-2xl border border-gray-100 bg-white/80 p-6 shadow-sm">
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-700">Action</label>
+      <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+        <section className="app-card p-6">
+          <div className="space-y-5">
+            <div>
+              <div className="app-chip">Action input</div>
+              <h2 className="mt-3 app-section-title">Submit a sustainability action</h2>
+            </div>
 
-            {loadingTypes ? (
-              <div className="text-sm text-gray-600">Loading actions...</div>
-            ) : (
-              <select
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-                value={selectedKey}
-                onChange={(e) => setSelectedKey(e.target.value)}
-              >
-                {actionTypes.map((a) => (
-                  <option key={a.key} value={a.key}>
-                    {a.category} - {a.name} ({a.unit})
-                  </option>
-                ))}
-              </select>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-wide app-muted">
+                Action
+              </label>
+
+              {loadingTypes ? (
+                <div className="text-sm app-muted">Loading actions...</div>
+              ) : (
+                <select
+                  className="w-full rounded-2xl border border-[rgb(var(--app-line))] bg-white px-4 py-3 text-sm text-[rgb(var(--app-ink))]"
+                  value={selectedKey}
+                  onChange={(e) => setSelectedKey(e.target.value)}
+                >
+                  {actionTypes.map((a) => (
+                    <option key={a.key} value={a.key}>
+                      {a.category} - {a.name} ({a.unit})
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-wide app-muted">
+                Quantity {selected ? `(${selected.unit})` : ""}
+              </label>
+              <input
+                className="w-full rounded-2xl border border-[rgb(var(--app-line))] bg-white px-4 py-3 text-sm text-[rgb(var(--app-ink))]"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="e.g., 3"
+              />
+            </div>
+
+            <button
+              onClick={onSubmit}
+              disabled={submitting || loadingTypes}
+              className="w-full rounded-2xl bg-[rgb(var(--app-ink))] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-60"
+            >
+              {submitting ? "Submitting..." : "Submit action"}
+            </button>
+
+            {error && (
+              <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">{error}</div>
             )}
           </div>
+        </section>
 
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-700">
-              Quantity {selected ? `(${selected.unit})` : ""}
-            </label>
-            <input
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              placeholder="e.g., 3"
-            />
+        <section className="app-card p-6">
+          <div className="space-y-4">
+            <div>
+              <div className="app-chip">Transparency panel</div>
+              <h2 className="mt-3 app-section-title">How we estimate this</h2>
+            </div>
+
+            {!result ? (
+              <div className="app-card-soft p-5 text-sm app-muted">
+                Pick an action and submit to see the backend calculation and your pet reward.
+              </div>
+            ) : (
+              <div className="space-y-4 text-sm text-[rgb(var(--app-ink))]">
+                <div className="rounded-[1.5rem] bg-[rgb(var(--app-brand-soft))] p-5">
+                  <div className="text-base font-semibold text-[rgb(var(--app-ink))]">
+                    Estimated: {result.calculation.estimateKgCO2e.toFixed(3)} kg CO2e
+                  </div>
+                  <div className="mt-2 text-xs app-muted">
+                    Range: {result.calculation.rangeKgCO2e.min.toFixed(3)} to{" "}
+                    {result.calculation.rangeKgCO2e.max.toFixed(3)} kg CO2e
+                  </div>
+                </div>
+
+                <div className="app-card-soft p-5">
+                  <div className="text-xs font-semibold uppercase tracking-wide app-muted">
+                    Logged
+                  </div>
+                  <div className="mt-2 text-sm text-[rgb(var(--app-ink))]">
+                    {result.actionType.name} - {result.log.quantity} {result.actionType.unit} -
+                    score {result.log.score}
+                  </div>
+                </div>
+
+                {rewardResult && (
+                  <div className="rounded-[1.5rem] border border-emerald-100 bg-emerald-50 p-5">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                      Pet reward
+                    </div>
+                    <div className="mt-2 text-base font-semibold text-[rgb(var(--app-ink))]">
+                      Your pet enjoyed that sustainable action.
+                    </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                      <div className="app-stat px-3 py-3 text-sm">
+                        +{rewardResult.coinsEarned} CG67coin
+                      </div>
+                      <div className="app-stat px-3 py-3 text-sm">
+                        +{rewardResult.happinessGain}% happiness
+                      </div>
+                      <div className="app-stat px-3 py-3 text-sm">
+                        +{rewardResult.energyGain}% energy
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="app-stat">
+                    <div className="text-xs uppercase tracking-wide app-muted">Confidence</div>
+                    <div className="mt-1 text-lg font-semibold text-[rgb(var(--app-ink))]">
+                      {result.calculation.confidence}
+                    </div>
+                  </div>
+                  <div className="app-stat">
+                    <div className="text-xs uppercase tracking-wide app-muted">Caveat</div>
+                    <div className="mt-1 text-sm app-muted">{result.calculation.caveat}</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-
-          <button
-            onClick={onSubmit}
-            disabled={submitting || loadingTypes}
-            className="w-full rounded-xl bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
-          >
-            {submitting ? "Submitting..." : "Submit"}
-          </button>
-
-          {error && (
-            <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-2xl border border-gray-100 bg-white/80 p-6 shadow-sm">
-          <div className="text-sm font-medium text-gray-900">How we estimate this</div>
-
-          {!result ? (
-            <p className="mt-2 text-sm text-gray-700">
-              Pick an action and submit to see the backend calculation.
-            </p>
-          ) : (
-            <div className="mt-4 space-y-3 text-sm text-gray-700">
-              <div className="rounded-xl bg-green-50 p-4">
-                <div className="font-medium text-gray-900">
-                  Estimated: {result.calculation.estimateKgCO2e.toFixed(3)} kg CO2e
-                </div>
-                <div className="mt-1 text-xs text-gray-600">
-                  Range: {result.calculation.rangeKgCO2e.min.toFixed(3)}-
-                  {result.calculation.rangeKgCO2e.max.toFixed(3)} kg CO2e
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-gray-100 bg-white p-4">
-                <div className="text-xs font-medium text-gray-900">Logged</div>
-                <div className="mt-1 text-xs text-gray-600">
-                  {result.actionType.name} - {result.log.quantity} {result.actionType.unit} -
-                  score {result.log.score}
-                </div>
-              </div>
-
-              {rewardResult && (
-                <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
-                  <div className="text-xs font-medium uppercase tracking-wide text-emerald-700">
-                    Pet reward
-                  </div>
-                  <div className="mt-2 text-sm font-medium text-gray-900">
-                    Your pet enjoyed that sustainable action.
-                  </div>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                    <div className="rounded-xl bg-white px-3 py-2 text-xs text-gray-700">
-                      +{rewardResult.coinsEarned} CG67coin
-                    </div>
-                    <div className="rounded-xl bg-white px-3 py-2 text-xs text-gray-700">
-                      +{rewardResult.happinessGain}% happiness
-                    </div>
-                    <div className="rounded-xl bg-white px-3 py-2 text-xs text-gray-700">
-                      +{rewardResult.energyGain}% energy
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="text-xs text-gray-600">
-                <span className="font-medium">Confidence:</span>{" "}
-                {result.calculation.confidence}
-              </div>
-              <div className="text-xs text-gray-600">{result.calculation.caveat}</div>
-            </div>
-          )}
-        </div>
+        </section>
       </div>
     </PageShell>
   );

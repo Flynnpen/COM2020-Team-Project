@@ -3,18 +3,22 @@ import Sidebar from "../components/Sidebar";
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto flex max-w-6xl">
+    <div className="min-h-screen px-4 py-4 sm:px-6 sm:py-6">
+      <div className="mx-auto flex max-w-7xl gap-4 lg:gap-6">
         <Sidebar />
 
-        <main className="flex-1 p-6 md:p-10">
-          {/* Top bar (mobile / simple header) */}
-          <div className="mb-6 flex items-center justify-between md:hidden">
-            <div className="text-sm font-semibold text-gray-900">Campus Carbon</div>
-            <div className="text-xs text-gray-500">Menu later</div>
+        <main className="min-w-0 flex-1">
+          <div className="app-card mb-5 flex items-center justify-between px-4 py-3 md:hidden">
+            <div>
+              <div className="text-sm font-semibold text-[rgb(var(--app-ink))]">Campus Carbon</div>
+              <div className="text-xs app-muted">Climate actions, challenges, and pet progress</div>
+            </div>
+            <div className="app-chip">Menu soon</div>
           </div>
 
-          <Outlet />
+          <div className="space-y-7">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

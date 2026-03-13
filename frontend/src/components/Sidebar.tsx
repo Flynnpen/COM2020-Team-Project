@@ -1,3 +1,4 @@
+import { NavLink } from "react-router-dom";
 import { clearDemoUser, getDemoUser } from "../auth/demoAuth";
 import { ensureGamificationState, getPetTemplate } from "../gamification/store";
 
@@ -17,12 +18,9 @@ const baseNavItems: NavItem[] = [
   { label: "Profile", href: "/app/profile" },
 ];
 
-
 export default function Sidebar() {
   const user = getDemoUser();
-  const gamificationState = user?.user_id
-    ? ensureGamificationState(user.user_id)
-    : null;
+  const gamificationState = user?.user_id ? ensureGamificationState(user.user_id) : null;
   const petTemplate = gamificationState
     ? getPetTemplate(gamificationState.pet.templateId)
     : null;
@@ -41,101 +39,118 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:gap-6 md:border-r md:border-gray-100 md:bg-white/70 md:p-6">
-      {/* Brand */}
-      <div className="space-y-1">
-        <div className="text-sm font-semibold text-gray-900">Campus Carbon</div>
-        <div className="text-xs text-gray-500">Exeter student challenges</div>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex flex-col gap-1">
-        {navItems.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className="rounded-xl px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-          >
-            {item.label}
-          </a>
-        ))}
-      </nav>
-
-      {/* Bottom area */}
-      <div className="mt-auto space-y-3">
-        {gamificationState && petTemplate ? (
-          <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white">
-            <div className={`bg-gradient-to-r ${petTemplate.accentClass} p-4`}>
-              <div className="flex items-center gap-3">
-                <img
-                  src={petTemplate.image}
-                  alt={petTemplate.name}
-                  className="h-14 w-14 rounded-2xl bg-white/80 object-cover"
-                />
-                <div className="min-w-0">
-                  <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-700">
-                    Active pet
-                  </div>
-                  <div className="truncate text-sm font-semibold text-gray-950">
-                    {gamificationState.pet.nickname}
-                  </div>
-                  <div className="text-xs text-gray-700">{petTemplate.tagline}</div>
-                </div>
-              </div>
+    <aside className="hidden w-72 shrink-0 md:flex md:flex-col md:gap-5">
+      <div className="app-card flex h-full flex-col p-5">
+        <div className="space-y-2">
+          <div className="app-chip">Campus Carbon</div>
+          <div>
+            <div className="text-lg font-semibold tracking-tight text-[rgb(var(--app-ink))]">
+              Exeter challenge hub
             </div>
-
-            <div className="space-y-3 p-4">
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-xl bg-gray-50 p-3">
-                  <div className="text-gray-500">CG67coin</div>
-                  <div className="mt-1 text-sm font-semibold text-gray-950">
-                    {gamificationState.coins}
-                  </div>
-                </div>
-                <div className="rounded-xl bg-gray-50 p-3">
-                  <div className="text-gray-500">Streak</div>
-                  <div className="mt-1 text-sm font-semibold text-gray-950">
-                    {gamificationState.pet.streakDays} days
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-[11px] text-gray-500">
-                  <span>Energy</span>
-                  <span>{gamificationState.pet.energy}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-gray-100">
-                  <div
-                    className="h-2 rounded-full bg-amber-400"
-                    style={{ width: `${gamificationState.pet.energy}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2 text-xs">
-                <span className="text-gray-500">Status</span>
-                <span
-                  className={`font-medium ${
-                    gamificationState.pet.status === "alive"
-                      ? "text-emerald-700"
-                      : "text-rose-700"
-                  }`}
-                >
-                  {gamificationState.pet.status === "alive" ? "Alive" : "Needs revive"}
-                </span>
-              </div>
+            <div className="mt-1 text-sm app-muted">
+              Sustainability actions, teams, and companion progress in one place.
             </div>
           </div>
-        ) : null}
+        </div>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="w-full rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 hover:bg-red-100"
-        >
-          Log out
-        </button>
+        <nav className="mt-6 flex flex-col gap-1.5">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              className={({ isActive }) =>
+                `rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                  isActive
+                    ? "bg-[rgb(var(--app-brand))] text-white shadow-sm"
+                    : "text-[rgb(var(--app-ink))] hover:bg-[rgb(var(--app-soft))]"
+                }`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="mt-auto space-y-4 pt-6">
+          {gamificationState && petTemplate ? (
+            <div className="overflow-hidden rounded-[1.5rem] border border-[rgb(var(--app-line))] bg-white">
+              <div className={`bg-gradient-to-r ${petTemplate.accentClass} p-4`}>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={petTemplate.image}
+                    alt={petTemplate.name}
+                    className="h-16 w-16 rounded-[1.1rem] bg-white/85 object-cover"
+                  />
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-700">
+                      Active pet
+                    </div>
+                    <div className="truncate text-base font-semibold text-[rgb(var(--app-ink))]">
+                      {gamificationState.pet.nickname}
+                    </div>
+                    <div className="text-xs text-gray-700">{petTemplate.tagline}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3 p-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="app-stat p-3">
+                    <div className="text-[11px] uppercase tracking-wide app-muted">Coins</div>
+                    <div className="mt-1 text-base font-semibold text-[rgb(var(--app-ink))]">
+                      {gamificationState.coins}
+                    </div>
+                  </div>
+                  <div className="app-stat p-3">
+                    <div className="text-[11px] uppercase tracking-wide app-muted">Streak</div>
+                    <div className="mt-1 text-base font-semibold text-[rgb(var(--app-ink))]">
+                      {gamificationState.pet.streakDays} days
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[1.15rem] bg-[rgb(var(--app-soft))] px-3 py-3">
+                  <div className="flex items-center justify-between text-[11px] uppercase tracking-wide app-muted">
+                    <span>Energy</span>
+                    <span>{gamificationState.pet.energy}%</span>
+                  </div>
+                  <div className="mt-2 h-2 rounded-full bg-white">
+                    <div
+                      className="h-2 rounded-full bg-amber-400"
+                      style={{ width: `${gamificationState.pet.energy}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between rounded-[1.15rem] bg-[rgb(var(--app-soft))] px-3 py-2.5 text-xs">
+                  <span className="app-muted">Status</span>
+                  <span
+                    className={`font-semibold ${
+                      gamificationState.pet.status === "alive"
+                        ? "text-emerald-700"
+                        : "text-rose-700"
+                    }`}
+                  >
+                    {gamificationState.pet.status === "alive" ? "Alive" : "Needs revive"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full rounded-2xl border px-4 py-3 text-sm font-medium transition hover:bg-red-100"
+            style={{
+              borderColor: "rgb(254 202 202)",
+              backgroundColor: "rgb(var(--app-danger-soft))",
+              color: "rgb(185 28 28)",
+            }}
+          >
+            Log out
+          </button>
+        </div>
       </div>
     </aside>
   );

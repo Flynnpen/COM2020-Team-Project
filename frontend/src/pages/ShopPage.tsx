@@ -22,7 +22,7 @@ export default function ShopPage() {
   if (!user) {
     return (
       <PageShell title="Shop" subtitle="Sign in to spend your CG67coin.">
-        <div className="rounded-2xl bg-white p-6 text-sm text-gray-700">
+        <div className="app-card p-6 text-sm app-muted">
           You need to be signed in to access the shop.
         </div>
       </PageShell>
@@ -32,7 +32,7 @@ export default function ShopPage() {
   if (!state) {
     return (
       <PageShell title="Shop" subtitle="Loading your inventory...">
-        <div className="rounded-2xl bg-white p-6 text-sm text-gray-700">Loading shop...</div>
+        <div className="app-card p-6 text-sm app-muted">Loading shop...</div>
       </PageShell>
     );
   }
@@ -57,41 +57,41 @@ export default function ShopPage() {
   return (
     <PageShell
       title="Shop"
-      subtitle="Spend CG67coin on accessories, revive support, and future pet upgrades."
+      subtitle="Spend CG67coin on upgrades, cosmetic gear, and revive support for your companion."
       right={
-        <div className="rounded-xl bg-gray-950 px-4 py-2 text-sm font-medium text-white">
+        <div className="rounded-full bg-[rgb(var(--app-ink))] px-4 py-2 text-sm font-semibold text-white">
           Balance: {state.coins} CG67coin
         </div>
       }
     >
-      <div className="grid gap-6 lg:grid-cols-[1fr_0.38fr]">
+      <div className="grid gap-6 xl:grid-cols-[1fr_0.38fr]">
         <section className="grid gap-4 md:grid-cols-2">
           {SHOP_ITEMS.map((item) => {
             const owned = state.inventoryItemIds.includes(item.id);
             const isRevive = item.id === "revive-token";
 
             return (
-              <div key={item.id} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+              <div key={item.id} className="app-card p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-xs uppercase tracking-wide text-emerald-700">
-                      {item.slot}
+                    <div className="app-chip">{item.slot}</div>
+                    <div className="mt-3 text-xl font-semibold text-[rgb(var(--app-ink))]">
+                      {item.name}
                     </div>
-                    <div className="mt-1 text-lg font-medium text-gray-950">{item.name}</div>
                   </div>
-                  <div className="rounded-full bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700">
+                  <div className="rounded-full bg-[rgb(var(--app-soft))] px-3 py-2 text-xs font-semibold text-[rgb(var(--app-ink))]">
                     {item.price} coin
                   </div>
                 </div>
-                <p className="mt-3 text-sm text-gray-600">{item.description}</p>
-                <div className="mt-3 rounded-xl bg-gray-50 p-3 text-xs text-gray-600">
+                <p className="mt-4 text-sm app-muted">{item.description}</p>
+                <div className="mt-4 rounded-[1.25rem] bg-[rgb(var(--app-soft))] p-3 text-xs app-muted">
                   {item.effect}
                 </div>
                 <button
                   type="button"
                   onClick={() => handleBuy(item.id)}
                   disabled={!isRevive && owned}
-                  className="mt-4 w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-medium text-white disabled:opacity-50"
+                  className="mt-5 w-full rounded-2xl bg-[rgb(var(--app-brand))] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-45"
                 >
                   {!isRevive && owned ? "Owned" : "Buy now"}
                 </button>
@@ -101,40 +101,39 @@ export default function ShopPage() {
         </section>
 
         <aside className="space-y-4">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="text-sm font-medium text-gray-900">How this loop works</div>
-            <div className="mt-3 space-y-2 text-sm text-gray-600">
-              <div>1. Players choose one pet during signup.</div>
-              <div>2. Sustainable actions and challenge progress earn coins.</div>
-              <div>3. Coins buy cosmetic upgrades and revive options.</div>
-              <div>4. Pets can enter a revive state if neglected or penalised later.</div>
+          <div className="app-card p-5">
+            <div className="app-chip">Loop overview</div>
+            <div className="mt-3 space-y-2 text-sm app-muted">
+              <div>1. Choose one pet during signup.</div>
+              <div>2. Earn coins from sustainable actions and challenge progress.</div>
+              <div>3. Spend them on upgrades, cosmetics, and recovery support.</div>
+              <div>4. Keep your companion active through consistent engagement.</div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-rose-100 bg-rose-50 p-5">
-            <div className="text-sm font-medium text-rose-900">Revive rule</div>
+          <div className="rounded-[1.75rem] border border-rose-100 bg-rose-50 p-5">
+            <div className="text-sm font-semibold text-rose-900">Revive rule</div>
             <div className="mt-2 text-sm text-rose-700">
               Current frontend assumption: revival costs `PS5` worth of `CG67coin`, represented as
               a 500-coin revive action.
             </div>
           </div>
 
-          <div className="rounded-2xl border border-gray-100 bg-gray-950 p-5 text-white shadow-sm">
-            <div className="text-sm font-medium">Next good link-up</div>
+          <div className="rounded-[1.75rem] bg-[rgb(var(--app-ink))] p-5 text-white shadow-sm">
+            <div className="text-sm font-semibold">Pet hub link-up</div>
             <p className="mt-2 text-sm text-gray-300">
-              When backend support is ready, hook coin balance to verified challenge points or
-              approved sustainable actions.
+              When you buy an accessory here, it is ready to appear in the pet hub loadout.
             </p>
             <Link
               to="/app/pets"
-              className="mt-4 inline-block rounded-xl bg-white px-4 py-2 text-sm font-medium text-gray-900"
+              className="mt-4 inline-block rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-[rgb(var(--app-ink))]"
             >
               Back to pet hub
             </Link>
           </div>
 
           {message && (
-            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800">
+            <div className="rounded-[1.75rem] border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800">
               {message}
             </div>
           )}
