@@ -3,7 +3,7 @@ import { getDemoUser } from "../auth/demoAuth";
 import { apiFetch } from "../api/client";
 import { getActionLogs } from "../api/actionLogs";
 import type { ActionType, GetActionTypesResponse } from "../api/types";
-import { ensureGamificationState, getPetTemplate } from "../gamification/store";
+import { ensureGamificationState, getPetDisplay } from "../gamification/store";
 
 type DateRangeOption = 7 | 30;
 
@@ -33,7 +33,7 @@ export default function DashboardPage() {
   const user = getDemoUser();
   const displayName = user?.display_name || user?.username || "there";
   const petState = user?.user_id ? ensureGamificationState(user.user_id) : null;
-  const petTemplate = petState ? getPetTemplate(petState.pet.templateId) : null;
+  const petDisplay = petState ? getPetDisplay(petState.pet.nickname) : null;
 
   const [actionTypes, setActionTypes] = useState<ActionType[]>([]);
   const [logs, setLogs] = useState<
@@ -142,50 +142,71 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Page heading */}
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-gray-900">Hi {displayName}</h1>
-        <p className="text-sm text-gray-600">Here is your sustainability progress so far.</p>
-      </header>
-
-      {petState && petTemplate ? (
-        <section className="overflow-hidden rounded-[2rem] border border-emerald-100 bg-white shadow-sm">
-          <div className={`grid gap-0 lg:grid-cols-[0.95fr_1.05fr]`}>
-            <div className={`bg-gradient-to-br ${petTemplate.accentClass} p-6`}>
-              <div className="flex items-center gap-4 rounded-[1.5rem] bg-white/70 p-4 backdrop-blur">
-                <img
-                  src={petTemplate.image}
-                  alt={petTemplate.name}
-                  className="h-24 w-24 rounded-[1.25rem] bg-white object-cover"
-                />
-                <div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-gray-600">
-                    Pet companion
+    <div className="space-y-7">
+      <section className="app-card overflow-hidden">
+        <div className="grid gap-0 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="bg-[linear-gradient(135deg,rgba(221,243,229,0.95),rgba(245,236,215,0.72))] p-6">
+            <div className="space-y-4 rounded-[1.6rem] bg-white/78 p-5 backdrop-blur">
+              <div className="app-chip">Progress snapshot</div>
+              <div>
+                <h2 className="text-3xl font-semibold tracking-tight text-[rgb(var(--app-ink))]">
+                  Hi {displayName}
+                </h2>
+                <p className="mt-2 max-w-md text-sm app-muted">
+                  Here is your current low-carbon momentum across actions, pet progress, and
+                  weekly consistency.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="app-stat">
+                  <div className="text-xs uppercase tracking-wide app-muted">Current focus</div>
+                  <div className="mt-1 text-base font-semibold text-[rgb(var(--app-ink))]">
+                    {category === "all" ? "All categories" : category}
                   </div>
-                  <div className="mt-1 text-2xl font-semibold text-gray-950">
-                    {petState.pet.nickname}
+                </div>
+                <div className="app-stat">
+                  <div className="text-xs uppercase tracking-wide app-muted">Time window</div>
+                  <div className="mt-1 text-base font-semibold text-[rgb(var(--app-ink))]">
+                    Last {dateRange} days
                   </div>
-                  <div className="mt-1 text-sm text-gray-700">{petTemplate.tagline}</div>
                 </div>
               </div>
             </div>
+          </div>
 
+          {petState && petDisplay ? (
             <div className="grid gap-3 p-6 sm:grid-cols-3">
-              <div className="rounded-2xl bg-gray-50 p-4">
-                <div className="text-xs text-gray-500">CG67coin</div>
-                <div className="mt-1 text-2xl font-semibold text-gray-950">{petState.coins}</div>
-              </div>
-              <div className="rounded-2xl bg-gray-50 p-4">
-                <div className="text-xs text-gray-500">Pet streak</div>
-                <div className="mt-1 text-2xl font-semibold text-gray-950">
-                  {petState.pet.streakDays} days
+              <div className="sm:col-span-3">
+                <div className="app-card-soft flex items-center gap-4 p-4">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-[1.2rem] bg-white text-2xl font-semibold text-[rgb(var(--app-ink))]">
+                    {petDisplay.avatarLabel}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs uppercase tracking-[0.16em] app-muted">Pet companion</div>
+                    <div className="truncate text-2xl font-semibold text-[rgb(var(--app-ink))]">
+                      {petState.pet.nickname}
+                    </div>
+                    <div className="text-sm app-muted">{petDisplay.tagline}</div>
+                  </div>
                 </div>
               </div>
-              <div className="rounded-2xl bg-gray-50 p-4">
-                <div className="text-xs text-gray-500">Status</div>
+
+              <div className="app-stat">
+                <div className="text-xs uppercase tracking-wide app-muted">CG67coin</div>
+                <div className="mt-1 text-2xl font-semibold text-[rgb(var(--app-ink))]">
+                  {petState.coins}
+                </div>
+              </div>
+              <div className="app-stat">
+                <div className="text-xs uppercase tracking-wide app-muted">Pet streak</div>
+                <div className="mt-1 text-2xl font-semibold text-[rgb(var(--app-ink))]">
+                  {petState.pet.streakDays}
+                </div>
+              </div>
+              <div className="app-stat">
+                <div className="text-xs uppercase tracking-wide app-muted">Status</div>
                 <div
-                  className={`mt-1 text-sm font-semibold ${
+                  className={`mt-2 text-sm font-semibold ${
                     petState.pet.status === "alive" ? "text-emerald-700" : "text-rose-700"
                   }`}
                 >
@@ -193,43 +214,45 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-gray-100 bg-white p-4 sm:col-span-3">
-                <div className="flex items-center justify-between text-xs text-gray-500">
+              <div className="app-stat sm:col-span-3">
+                <div className="flex items-center justify-between text-xs uppercase tracking-wide app-muted">
                   <span>Energy</span>
                   <span>{petState.pet.energy}%</span>
                 </div>
-                <div className="mt-2 h-2 rounded-full bg-gray-100">
+                <div className="mt-3 h-2 rounded-full bg-white">
                   <div
                     className="h-2 rounded-full bg-amber-400"
                     style={{ width: `${petState.pet.energy}%` }}
                   />
                 </div>
-                <div className="mt-3 text-xs text-gray-600">
-                  Your pet system is now visible from the dashboard and ready to be linked to real
-                  actions and challenge rewards later.
+              </div>
+            </div>
+          ) : (
+            <div className="p-6">
+              <div className="app-card-soft p-5">
+                <div className="text-sm font-semibold text-[rgb(var(--app-ink))]">Pet sync pending</div>
+                <div className="mt-2 text-sm app-muted">
+                  Your pet profile will appear here once companion data is available.
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-      ) : null}
+          )}
+        </div>
+      </section>
 
-      {/* Chart card */}
-      <section className="rounded-2xl border border-gray-100 bg-white/80 p-6 shadow-sm">
-        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-green-200/70" />
-            <div>
-              <h2 className="text-lg font-medium text-gray-900">Your carbon journey</h2>
-              <p className="text-xs text-gray-500">
-                {dateRange === 7 ? "Last 7 days" : "Last 30 days"} based on logged actions
-              </p>
-            </div>
+      <section className="app-card p-6">
+        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <div className="app-chip">Carbon journey</div>
+            <h2 className="app-section-title">Estimated impact over time</h2>
+            <p className="text-sm app-muted">
+              {dateRange === 7 ? "Last 7 days" : "Last 30 days"} based on logged actions.
+            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <select
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700"
+              className="rounded-xl border border-[rgb(var(--app-line))] bg-white px-3 py-2 text-sm text-[rgb(var(--app-ink))]"
               value={dateRange}
               onChange={(e) => setDateRange(Number(e.target.value) as DateRangeOption)}
             >
@@ -238,7 +261,7 @@ export default function DashboardPage() {
             </select>
 
             <select
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700"
+              className="rounded-xl border border-[rgb(var(--app-line))] bg-white px-3 py-2 text-sm text-[rgb(var(--app-ink))]"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
@@ -252,46 +275,50 @@ export default function DashboardPage() {
         </div>
 
         {loading ? (
-          <div className="text-sm text-gray-600">Loading chart...</div>
+          <div className="text-sm app-muted">Loading chart...</div>
         ) : error ? (
-          <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</div>
+          <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">{error}</div>
         ) : (
           <>
-            <div className="flex h-44 items-end gap-2">
-              {totalsByDate.map((d) => {
-                const height =
-                  maxTotal > 0 ? Math.max(4, (d.total / maxTotal) * 100) : 4;
-                return (
-                  <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
-                    <div className="flex h-32 w-full items-end">
-                      <div
-                        className="w-full rounded-md bg-green-200/80"
-                        style={{ height: `${height}%` }}
-                        title={`${d.total.toFixed(3)} kg CO2e`}
-                      />
+            <div className="rounded-[1.5rem] bg-[rgb(var(--app-soft))] p-4">
+              <div className="flex h-52 items-end gap-2">
+                {totalsByDate.map((d) => {
+                  const height = maxTotal > 0 ? Math.max(6, (d.total / maxTotal) * 100) : 6;
+                  return (
+                    <div key={d.date} className="flex flex-1 flex-col items-center gap-2">
+                      <div className="flex h-36 w-full items-end">
+                        <div
+                          className="w-full rounded-t-xl bg-[rgb(var(--app-brand))]/75"
+                          style={{ height: `${height}%` }}
+                          title={`${d.total.toFixed(3)} kg CO2e`}
+                        />
+                      </div>
+                      <div className="text-[10px] font-medium text-gray-500">
+                        {formatDateLabel(d.date)}
+                      </div>
                     </div>
-                    <div className="text-[10px] text-gray-500">{formatDateLabel(d.date)}</div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="mt-4 flex flex-col gap-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-gray-100 px-2 py-1 text-gray-700">
-                  Total: {totalKg.toFixed(3)} kg CO2e
-                </span>
-                <span className="rounded-full bg-gray-100 px-2 py-1 text-gray-700">
-                  Category: {category === "all" ? "all" : category}
-                </span>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="app-stat">
+                <div className="text-xs uppercase tracking-wide app-muted">Total</div>
+                <div className="mt-1 text-xl font-semibold text-[rgb(var(--app-ink))]">
+                  {totalKg.toFixed(3)} kg CO2e
+                </div>
               </div>
-
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-green-100 px-2 py-1 text-green-800">
-                  Confidence: Medium
-                </span>
-                <span className="hidden sm:inline">|</span>
-                <span>Estimates can vary by context.</span>
+              <div className="app-stat">
+                <div className="text-xs uppercase tracking-wide app-muted">Category</div>
+                <div className="mt-1 text-xl font-semibold text-[rgb(var(--app-ink))]">
+                  {category === "all" ? "All" : category}
+                </div>
+              </div>
+              <div className="app-stat">
+                <div className="text-xs uppercase tracking-wide app-muted">Confidence</div>
+                <div className="mt-1 text-xl font-semibold text-emerald-700">Medium</div>
+                <div className="mt-1 text-xs app-muted">Estimates can vary by context.</div>
               </div>
             </div>
           </>

@@ -3,7 +3,7 @@ import PageShell from "../components/PageShell";
 import { getUserLeaderboards } from "../api/leaderboards";
 import { getDemoUser } from "../auth/demoAuth";
 import type { UserLeaderboardEntry } from "../api/types";
-import { getGamificationState, getPetTemplate } from "../gamification/store";
+import { getGamificationState, getPetDisplay } from "../gamification/store";
 
 type Scope = "all" | "group";
 
@@ -13,10 +13,10 @@ export default function LeaderboardsPage() {
   const [error, setError] = useState<string | null>(null);
   const [scope, setScope] = useState<Scope>("all");
   const user = useMemo(() => getDemoUser(), []);
-  const myPetTemplate = useMemo(() => {
+  const myPetDisplay = useMemo(() => {
     if (!user?.user_id) return null;
     const state = getGamificationState(user.user_id);
-    return state ? getPetTemplate(state.pet.templateId) : null;
+    return state ? getPetDisplay(state.pet.nickname) : null;
   }, [user]);
 
   useEffect(() => {
@@ -38,84 +38,104 @@ export default function LeaderboardsPage() {
   }, [scope, user]);
 
   return (
-    <PageShell title="Leaderboards" subtitle="See who is leading on points.">
-      <div className="rounded-2xl border border-gray-100 bg-white/80 p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-sm font-medium text-gray-900">Member leaderboard</div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setScope("all")}
-              className={`rounded-full px-3 py-1 text-xs ${
-                scope === "all" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-700"
-              }`}
-            >
-              All users
-            </button>
-            <button
-              onClick={() => setScope("group")}
-              className={`rounded-full px-3 py-1 text-xs ${
-                scope === "group" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-700"
-              }`}
-              disabled={!user?.group_id}
-            >
-              My group
-            </button>
+    <PageShell
+      title="Leaderboards"
+      subtitle="Track who is setting the pace across campus actions, streaks, and community momentum."
+      right={
+        <div className="flex gap-2">
+          <button
+            onClick={() => setScope("all")}
+            className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide ${
+              scope === "all"
+                ? "bg-[rgb(var(--app-ink))] text-white"
+                : "bg-white text-[rgb(var(--app-ink))]"
+            }`}
+          >
+            All users
+          </button>
+          <button
+            onClick={() => setScope("group")}
+            className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide ${
+              scope === "group"
+                ? "bg-[rgb(var(--app-ink))] text-white"
+                : "bg-white text-[rgb(var(--app-ink))]"
+            }`}
+            disabled={!user?.group_id}
+          >
+            My group
+          </button>
+        </div>
+      }
+    >
+      <div className="app-card p-6">
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <div className="app-chip">Season ranking</div>
+            <h2 className="mt-3 app-section-title">Member leaderboard</h2>
+          </div>
+          <div className="text-sm app-muted">
+            {scope === "all" ? "Across all players" : "Within your current group"}
           </div>
         </div>
 
         {error && (
-          <div className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">
-            {error}
-          </div>
+          <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">{error}</div>
         )}
 
-        {loading && <div className="mt-4 text-sm text-gray-600">Loading leaderboard...</div>}
+        {loading && <div className="text-sm app-muted">Loading leaderboard...</div>}
 
         {!loading && !error && (
-          <div className="mt-4 space-y-2">
+          <div className="space-y-3">
             {entries.length === 0 && (
-              <div className="rounded-xl bg-white p-4 text-sm text-gray-700">
-                No leaderboard entries yet.
-              </div>
+              <div className="app-card-soft p-4 text-sm app-muted">No leaderboard entries yet.</div>
             )}
             {entries.map((entry, index) => {
               const isMe = user?.user_id === entry.user_id;
               const displayName = entry.display_name || entry.username;
-              const petImage = isMe && myPetTemplate ? myPetTemplate.image : null;
-              const petLabel = isMe && myPetTemplate ? myPetTemplate.name : "Pet coming soon";
+              const petLabel = isMe && myPetDisplay ? myPetDisplay.title : "Pet coming soon";
+              const petAvatar = isMe && myPetDisplay ? myPetDisplay.avatarLabel : null;
 
               return (
                 <div
                   key={entry.user_id}
-                  className={`flex items-center justify-between rounded-xl p-3 ${
-                    isMe ? "border border-green-100 bg-green-50" : "bg-white"
+                  className={`rounded-[1.6rem] border p-4 transition ${
+                    isMe
+                      ? "border-emerald-200 bg-emerald-50/80"
+                      : "border-[rgb(var(--app-line))] bg-white/90"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-gray-100">
-                      {petImage ? (
-                        <img
-                          src={petImage}
-                          alt={petLabel}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-[10px] font-medium uppercase tracking-wide text-gray-500">
-                          Pet
-                        </span>
-                      )}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex min-w-0 items-center gap-4">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[rgb(var(--app-soft))] text-sm font-semibold text-[rgb(var(--app-ink))]">
+                        {index + 1}
+                      </div>
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.25rem] bg-[rgb(var(--app-soft))]">
+                        {petAvatar ? (
+                          <span className="text-sm font-semibold uppercase tracking-wide text-[rgb(var(--app-ink))]">
+                            {petAvatar}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-semibold uppercase tracking-wide app-muted">
+                            Pet
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="truncate text-base font-semibold text-[rgb(var(--app-ink))]">
+                          {displayName}
+                        </div>
+                        <div className="text-sm app-muted">{entry.group_name || "No group"}</div>
+                        <div className="text-xs text-gray-400">{petLabel}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-sm text-gray-800">
-                        {index + 1}. {displayName}
+
+                    <div className="app-stat min-w-[92px] px-4 py-3 text-center">
+                      <div className="text-[11px] uppercase tracking-wide app-muted">Points</div>
+                      <div className="mt-1 text-lg font-semibold text-[rgb(var(--app-ink))]">
+                        {entry.points}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {entry.group_name || "No group"}
-                      </div>
-                      <div className="text-[11px] text-gray-400">{petLabel}</div>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600">{entry.points} pts</div>
                 </div>
               );
             })}

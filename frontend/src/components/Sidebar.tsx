@@ -1,36 +1,108 @@
+import { NavLink } from "react-router-dom";
 import { clearDemoUser, getDemoUser } from "../auth/demoAuth";
-import { ensureGamificationState, getPetTemplate } from "../gamification/store";
 
 type NavItem = {
   label: string;
   href: string;
+  icon: "dashboard" | "pets" | "shop" | "groups" | "challenges" | "log" | "leaderboards" | "profile" | "moderation";
 };
 
 const baseNavItems: NavItem[] = [
-  { label: "Dashboard", href: "/app/dashboard" },
-  { label: "Pets", href: "/app/pets" },
-  { label: "Shop", href: "/app/shop" },
-  { label: "Groups", href: "/app/groups" },
-  { label: "Challenges", href: "/app/challenges" },
-  { label: "Log action", href: "/app/log-action" },
-  { label: "Leaderboards", href: "/app/leaderboards" },
-  { label: "Profile", href: "/app/profile" },
+  { label: "Dashboard", href: "/app/dashboard", icon: "dashboard" },
+  { label: "Pets", href: "/app/pets", icon: "pets" },
+  { label: "Shop", href: "/app/shop", icon: "shop" },
+  { label: "Groups", href: "/app/groups", icon: "groups" },
+  { label: "Challenges", href: "/app/challenges", icon: "challenges" },
+  { label: "Log action", href: "/app/log-action", icon: "log" },
+  { label: "Leaderboards", href: "/app/leaderboards", icon: "leaderboards" },
+  { label: "Profile", href: "/app/profile", icon: "profile" },
 ];
 
+function NavIcon({ icon }: { icon: NavItem["icon"] }) {
+  const common = "h-5 w-5";
 
-export default function Sidebar() {
+  switch (icon) {
+    case "dashboard":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={common}>
+          <path d="M4 13h7V4H4zM13 20h7v-9h-7zM13 4h7v5h-7zM4 20h7v-5H4z" />
+        </svg>
+      );
+    case "pets":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={common}>
+          <path d="M12 13c2.9 0 5 1.8 5 4.2 0 1.6-1.3 2.8-2.9 2.8-.9 0-1.5-.4-2.1-.9-.6.5-1.2.9-2.1.9C8.3 20 7 18.8 7 17.2 7 14.8 9.1 13 12 13Z" />
+          <circle cx="7.5" cy="8" r="1.5" />
+          <circle cx="11" cy="5.5" r="1.5" />
+          <circle cx="16.5" cy="8" r="1.5" />
+          <circle cx="13" cy="4.5" r="1.5" />
+        </svg>
+      );
+    case "shop":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={common}>
+          <path d="M5 8h14l-1 11H6L5 8Z" />
+          <path d="M9 10V7a3 3 0 0 1 6 0v3" />
+        </svg>
+      );
+    case "groups":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={common}>
+          <circle cx="9" cy="8" r="3" />
+          <circle cx="17" cy="9" r="2.5" />
+          <path d="M4 18a5 5 0 0 1 10 0M14.5 18a3.5 3.5 0 0 1 5.5-2.8" />
+        </svg>
+      );
+    case "challenges":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={common}>
+          <path d="M8 4h8v3a4 4 0 0 0 3 3v1a7 7 0 1 1-14 0v-1a4 4 0 0 0 3-3V4Z" />
+          <path d="M9 20h6" />
+        </svg>
+      );
+    case "log":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={common}>
+          <path d="M7 4h8l4 4v12H7z" />
+          <path d="M15 4v4h4M10 12h6M10 16h6" />
+        </svg>
+      );
+    case "leaderboards":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={common}>
+          <path d="M6 20V10M12 20V4M18 20v-7" />
+        </svg>
+      );
+    case "profile":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={common}>
+          <circle cx="12" cy="8" r="3.5" />
+          <path d="M5.5 19a6.5 6.5 0 0 1 13 0" />
+        </svg>
+      );
+    case "moderation":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={common}>
+          <path d="M12 3l7 3v6c0 4.3-2.9 7-7 9-4.1-2-7-4.7-7-9V6l7-3Z" />
+          <path d="m9.5 12 1.7 1.7L14.8 10" />
+        </svg>
+      );
+  }
+}
+
+export default function Sidebar({
+  isOpen,
+  onToggle,
+}: {
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
   const user = getDemoUser();
-  const gamificationState = user?.user_id
-    ? ensureGamificationState(user.user_id)
-    : null;
-  const petTemplate = gamificationState
-    ? getPetTemplate(gamificationState.pet.templateId)
-    : null;
   const canModerate = user?.role === "moderator" || user?.role === "maintainer";
   const navItems: NavItem[] = canModerate
     ? [
         ...baseNavItems.slice(0, 5),
-        { label: "Moderation", href: "/app/moderation" },
+        { label: "Moderation", href: "/app/moderation", icon: "moderation" },
         ...baseNavItems.slice(5),
       ]
     : baseNavItems;
@@ -41,101 +113,106 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:gap-6 md:border-r md:border-gray-100 md:bg-white/70 md:p-6">
-      {/* Brand */}
-      <div className="space-y-1">
-        <div className="text-sm font-semibold text-gray-900">Campus Carbon</div>
-        <div className="text-xs text-gray-500">Exeter student challenges</div>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex flex-col gap-1">
-        {navItems.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className="rounded-xl px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+    <aside
+      className={`fixed left-4 top-4 z-50 transition-[width] duration-300 ease-out sm:left-6 sm:top-6 ${
+        isOpen ? "w-[min(22rem,calc(100vw-2rem))]" : "w-14 sm:w-16"
+      }`}
+    >
+      <div className="app-card flex max-h-[calc(100vh-2rem)] min-h-[3.5rem] flex-col overflow-hidden p-3 sm:max-h-[calc(100vh-3rem)] sm:p-4">
+        <div className={`flex items-center ${isOpen ? "justify-between gap-3" : "justify-center"}`}>
+          <button
+            type="button"
+            onClick={onToggle}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[rgb(var(--app-line))] bg-white text-[rgb(var(--app-ink))] transition hover:bg-[rgb(var(--app-soft))]"
+            aria-label={isOpen ? "Collapse navigation menu" : "Expand navigation menu"}
+            aria-expanded={isOpen}
           >
-            {item.label}
-          </a>
-        ))}
-      </nav>
+            <span className="flex flex-col gap-1.5">
+              <span className="block h-0.5 w-5 rounded-full bg-current" />
+              <span className="block h-0.5 w-5 rounded-full bg-current" />
+              <span className="block h-0.5 w-5 rounded-full bg-current" />
+            </span>
+          </button>
+        </div>
 
-      {/* Bottom area */}
-      <div className="mt-auto space-y-3">
-        {gamificationState && petTemplate ? (
-          <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white">
-            <div className={`bg-gradient-to-r ${petTemplate.accentClass} p-4`}>
-              <div className="flex items-center gap-3">
-                <img
-                  src={petTemplate.image}
-                  alt={petTemplate.name}
-                  className="h-14 w-14 rounded-2xl bg-white/80 object-cover"
-                />
-                <div className="min-w-0">
-                  <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-700">
-                    Active pet
-                  </div>
-                  <div className="truncate text-sm font-semibold text-gray-950">
-                    {gamificationState.pet.nickname}
-                  </div>
-                  <div className="text-xs text-gray-700">{petTemplate.tagline}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3 p-4">
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-xl bg-gray-50 p-3">
-                  <div className="text-gray-500">CG67coin</div>
-                  <div className="mt-1 text-sm font-semibold text-gray-950">
-                    {gamificationState.coins}
-                  </div>
-                </div>
-                <div className="rounded-xl bg-gray-50 p-3">
-                  <div className="text-gray-500">Streak</div>
-                  <div className="mt-1 text-sm font-semibold text-gray-950">
-                    {gamificationState.pet.streakDays} days
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-[11px] text-gray-500">
-                  <span>Energy</span>
-                  <span>{gamificationState.pet.energy}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-gray-100">
-                  <div
-                    className="h-2 rounded-full bg-amber-400"
-                    style={{ width: `${gamificationState.pet.energy}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2 text-xs">
-                <span className="text-gray-500">Status</span>
-                <span
-                  className={`font-medium ${
-                    gamificationState.pet.status === "alive"
-                      ? "text-emerald-700"
-                      : "text-rose-700"
-                  }`}
-                >
-                  {gamificationState.pet.status === "alive" ? "Alive" : "Needs revive"}
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="w-full rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 hover:bg-red-100"
+        <div
+          className={`transition duration-200 ${
+            isOpen
+              ? "pointer-events-auto mt-4 opacity-100"
+              : "pointer-events-none mt-0 h-0 overflow-hidden opacity-0"
+          }`}
         >
-          Log out
-        </button>
+          <nav className="flex flex-col gap-1.5">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.href}
+                to={item.href}
+                className={({ isActive }) =>
+                  `rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                    isActive
+                      ? "bg-[rgb(var(--app-brand))] text-white shadow-sm"
+                      : "text-[rgb(var(--app-ink))] hover:bg-[rgb(var(--app-soft))]"
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="mt-auto space-y-4 pt-6">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full rounded-2xl border px-4 py-3 text-sm font-medium transition hover:bg-red-100"
+              style={{
+                borderColor: "rgb(254 202 202)",
+                backgroundColor: "rgb(var(--app-danger-soft))",
+                color: "rgb(185 28 28)",
+              }}
+            >
+              Log out
+            </button>
+          </div>
+        </div>
+
+        {!isOpen ? (
+          <nav className="mt-4 flex flex-1 flex-col items-center gap-2">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.href}
+                to={item.href}
+                title={item.label}
+                aria-label={item.label}
+                className={({ isActive }) =>
+                  `flex h-10 w-10 items-center justify-center rounded-2xl border transition ${
+                    isActive
+                      ? "border-transparent bg-[rgb(var(--app-brand))] text-white shadow-sm"
+                      : "border-[rgb(var(--app-line))] bg-white text-[rgb(var(--app-ink))] hover:bg-[rgb(var(--app-soft))]"
+                  }`
+                }
+              >
+                <NavIcon icon={item.icon} />
+              </NavLink>
+            ))}
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Log out"
+              aria-label="Log out"
+              className="mt-auto flex h-10 w-10 items-center justify-center rounded-2xl border text-[rgb(185_28_28)] transition hover:bg-red-100"
+              style={{
+                borderColor: "rgb(254 202 202)",
+                backgroundColor: "rgb(var(--app-danger-soft))",
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
+                <path d="M10 17l-5-5 5-5M5 12h10M14 4h4v16h-4" />
+              </svg>
+            </button>
+          </nav>
+        ) : null}
       </div>
     </aside>
   );

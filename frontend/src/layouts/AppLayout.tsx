@@ -1,20 +1,26 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 
 export default function AppLayout() {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto flex max-w-6xl">
-        <Sidebar />
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-        <main className="flex-1 p-6 md:p-10">
-          {/* Top bar (mobile / simple header) */}
-          <div className="mb-6 flex items-center justify-between md:hidden">
-            <div className="text-sm font-semibold text-gray-900">Campus Carbon</div>
-            <div className="text-xs text-gray-500">Menu later</div>
+  return (
+    <div className="min-h-screen px-4 py-4 sm:px-6 sm:py-6">
+      <div className="mx-auto max-w-7xl">
+        <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen((open) => !open)} />
+
+        <main className="min-w-0 pl-14 sm:pl-20">
+          <div className="app-card mb-5 px-4 py-3">
+            <div>
+              <div className="text-sm font-semibold text-[rgb(var(--app-ink))]">Campus Carbon</div>
+              <div className="text-xs app-muted">Climate actions, challenges, and pet progress</div>
+            </div>
           </div>
 
-          <Outlet />
+          <div className="space-y-7">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
