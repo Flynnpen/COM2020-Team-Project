@@ -40,7 +40,7 @@ app.use('/', challengesRoutes);
 app.use('/', moderationRoutes);
 app.use("/pets", petsRouter);
 app.use("/shop", shopRouter);
-app.use("coins", coinsRouter);
+app.use("/coins", coinsRouter);
 
 app.get('/errortest', (req, res) => {
     throw new Error("Testing error");
