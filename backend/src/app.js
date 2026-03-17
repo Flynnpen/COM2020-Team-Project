@@ -16,6 +16,9 @@ import moderationRoutes from './routes/moderation.route.js';
 import groupsRoutes from './routes/groups.route.js';
 import invitesRoutes from './routes/invites.route.js';
 import leaderboardsRoutes from './routes/leaderboards.route.js';
+import petsRouter from "./routes/pets.route.js";
+import shopRouter from "./routes/shop.route.js";
+import coinsRouter from "./routes/coins.route.js";
 
 
 
@@ -35,6 +38,9 @@ app.use('/leaderboards', leaderboardsRoutes);
 app.use('/', submissionsRoutes);
 app.use('/', challengesRoutes);
 app.use('/', moderationRoutes);
+app.use("/pets", petsRouter);
+app.use("/shop", shopRouter);
+app.use("coins", coinsRouter);
 
 app.get('/errortest', (req, res) => {
     throw new Error("Testing error");
