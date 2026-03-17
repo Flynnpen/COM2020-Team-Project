@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1773788577000" clover="3.2.0">
-  <project timestamp="1773788577000" name="All files">
-    <metrics statements="690" coveredstatements="146" conditionals="631" coveredconditionals="81" methods="62" coveredmethods="8" elements="1383" coveredelements="235" complexity="0" loc="690" ncloc="690" packages="5" files="31" classes="31"/>
+<coverage generated="1773789122830" clover="3.2.0">
+  <project timestamp="1773789122830" name="All files">
+    <metrics statements="690" coveredstatements="150" conditionals="631" coveredconditionals="86" methods="62" coveredmethods="9" elements="1383" coveredelements="245" complexity="0" loc="690" ncloc="690" packages="5" files="31" classes="31"/>
     <package name="src">
       <metrics statements="28" coveredstatements="23" conditionals="4" coveredconditionals="0" methods="5" coveredmethods="1"/>
       <file name="app.js" path="C:\Users\jason\Downloads\COM2020-Team-Project\backend\src\app.js">
@@ -767,7 +767,7 @@
       </file>
     </package>
     <package name="src.services">
-      <metrics statements="22" coveredstatements="16" conditionals="27" coveredconditionals="15" methods="5" coveredmethods="3"/>
+      <metrics statements="22" coveredstatements="20" conditionals="27" coveredconditionals="20" methods="5" coveredmethods="4"/>
       <file name="carbon.service.js" path="C:\Users\jason\Downloads\COM2020-Team-Project\backend\src\services\carbon.service.js">
         <metrics statements="16" coveredstatements="14" conditionals="20" coveredconditionals="13" methods="3" coveredmethods="2"/>
         <line num="1" count="5" type="stmt"/>
@@ -788,11 +788,11 @@
         <line num="28" count="1" type="stmt"/>
       </file>
       <file name="challengeRules.service.js" path="C:\Users\jason\Downloads\COM2020-Team-Project\backend\src\services\challengeRules.service.js">
-        <metrics statements="4" coveredstatements="0" conditionals="5" coveredconditionals="0" methods="1" coveredmethods="0"/>
-        <line num="3" count="0" type="cond" truecount="0" falsecount="4"/>
-        <line num="4" count="0" type="stmt"/>
-        <line num="5" count="0" type="stmt"/>
-        <line num="7" count="0" type="stmt"/>
+        <metrics statements="4" coveredstatements="4" conditionals="5" coveredconditionals="5" methods="1" coveredmethods="1"/>
+        <line num="3" count="3" type="cond" truecount="4" falsecount="0"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
       </file>
       <file name="scoring.service.js" path="C:\Users\jason\Downloads\COM2020-Team-Project\backend\src\services\scoring.service.js">
         <metrics statements="2" coveredstatements="2" conditionals="2" coveredconditionals="2" methods="1" coveredmethods="1"/>
