@@ -195,7 +195,7 @@ export default function DashboardPage() {
                     <div className="truncate text-2xl font-semibold text-[rgb(var(--app-ink))]">
                       {pet.nickname}
                     </div>
-                    <div className="text-sm app-muted">{pet.pet_type} linked from the backend.</div>
+                    <div className="text-sm app-muted">{pet.pet_type} companion</div>
                   </div>
                 </div>
               </div>

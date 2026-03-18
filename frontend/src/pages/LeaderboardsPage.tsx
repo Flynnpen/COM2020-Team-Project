@@ -111,7 +111,7 @@ export default function LeaderboardsPage() {
             {entries.map((entry, index) => {
               const isMe = user?.user_id === entry.user_id;
               const displayName = entry.display_name || entry.username;
-              const petLabel = isMe && myPetName ? myPetName : "Pet linked separately";
+              const petLabel = isMe && myPetName ? myPetName : "Campus companion";
               const petAvatar = isMe && myPetName ? myPetName.slice(0, 2).toUpperCase() : null;
 
               return (

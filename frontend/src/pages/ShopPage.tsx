@@ -125,7 +125,7 @@ export default function ShopPage() {
   return (
     <PageShell
       title="Shop"
-      subtitle="Spend your real backend coin balance on pet accessories and upgrades."
+      subtitle="Spend your balance on pet accessories and upgrades."
       right={
         <div className="rounded-full bg-[rgb(var(--app-ink))] px-4 py-2 text-sm font-semibold text-white">
           Balance: {coins ?? 0} CG67coin
@@ -174,8 +174,8 @@ export default function ShopPage() {
           <div className="app-card p-5">
             <div className="app-chip">Shop status</div>
             <div className="mt-3 space-y-2 text-sm app-muted">
-              <div>{items.length} active items loaded from `/shop`.</div>
-              <div>{inventory.length} inventory entries loaded from `/inventory`.</div>
+              <div>{items.length} active items available.</div>
+              <div>{inventory.length} inventory entries owned.</div>
               <div>{hasPet ? "Pet profile found." : "No pet profile yet."}</div>
             </div>
           </div>
@@ -195,9 +195,9 @@ export default function ShopPage() {
           )}
 
           <div className="rounded-[1.75rem] bg-[rgb(var(--app-ink))] p-5 text-white shadow-sm">
-            <div className="text-sm font-semibold">Pet hub link-up</div>
+            <div className="text-sm font-semibold">Pet hub</div>
             <p className="mt-2 text-sm text-gray-300">
-              Purchases here are written to the backend inventory and can be equipped on the pet page.
+              Items you buy here can be equipped from the pet page.
             </p>
             <Link
               to="/app/pets"

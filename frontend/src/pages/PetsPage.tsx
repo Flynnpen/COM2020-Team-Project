@@ -257,14 +257,13 @@ export default function PetsPage() {
 
   if (!pet) {
     return (
-      <PageShell title="Pets" subtitle="Adopt a starter companion to unlock the pet loop.">
+      <PageShell title="Pets" subtitle="Adopt a companion and start building its profile.">
         <div className="grid gap-6 xl:grid-cols-[1fr_0.42fr]">
           <section className="app-card p-6">
             <div className="app-chip">Adoption</div>
             <h2 className="mt-3 app-section-title">Choose your starter pet</h2>
             <p className="mt-3 text-sm leading-7 app-muted">
-              The backend does not create a pet automatically. Pick one starter type here so the
-              rest of the companion, inventory, and shop flows have a real profile to work with.
+              Pick a starter type and give your companion a name to begin its journey.
             </p>
 
             <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -312,7 +311,7 @@ export default function PetsPage() {
                 {coins ?? 0} CG67coin
               </div>
               <div className="mt-2 text-sm app-muted">
-                Coin balance is already live from the backend, even before the pet is adopted.
+                Your balance is ready for pet care and shop items.
               </div>
             </div>
 
@@ -335,7 +334,7 @@ export default function PetsPage() {
   return (
     <PageShell
       title="Pets"
-      subtitle="Your companion, its live stats, and the inventory coming from the backend."
+      subtitle="Manage your companion, its wellbeing, and its inventory."
       right={
         <div className="rounded-full bg-[rgb(var(--app-ink))] px-4 py-2 text-sm font-semibold text-white">
           Balance: {coins ?? 0} CG67coin
@@ -424,9 +423,8 @@ export default function PetsPage() {
               </button>
 
               <div className="mt-6 rounded-[1.35rem] bg-[rgb(var(--app-soft))] p-4 text-sm app-muted">
-                Adopted on {new Date(pet.adopted_at).toLocaleDateString()}. Current backend status:
-                {" "}
-                <span className="font-semibold text-[rgb(var(--app-ink))]">{pet.status}</span>.
+                Adopted on {new Date(pet.adopted_at).toLocaleDateString()}. Status:
+                <span className="ml-1 font-semibold text-[rgb(var(--app-ink))]">{pet.status}</span>.
               </div>
             </div>
 
@@ -434,8 +432,7 @@ export default function PetsPage() {
               <div className="app-chip">Care controls</div>
               <h2 className="mt-3 app-section-title">Revive when needed</h2>
               <p className="mt-3 text-sm leading-7 app-muted">
-                Revive is now a real backend action. The current API uses the backend-defined coin
-                cost and updates both pet state and coin balance together.
+                If your companion goes down, revive it here and get it moving again.
               </p>
               <button
                 type="button"
@@ -559,15 +556,6 @@ export default function PetsPage() {
               {message}
             </div>
           )}
-
-          <div className="app-card p-5">
-            <div className="app-chip">Backend sync</div>
-            <div className="mt-3 space-y-2 text-sm app-muted">
-              <div>Pet details now come from `/pets/me`.</div>
-              <div>Inventory comes from `/inventory`.</div>
-              <div>Revive and nickname updates are persisted through the backend.</div>
-            </div>
-          </div>
         </aside>
       </div>
     </PageShell>

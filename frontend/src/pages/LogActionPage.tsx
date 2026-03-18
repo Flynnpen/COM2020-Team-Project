@@ -141,7 +141,7 @@ export default function LogActionPage() {
 
             {!result ? (
               <div className="app-card-soft p-5 text-sm app-muted">
-                Pick an action and submit to see the backend calculation and your pet reward.
+                Pick an action and submit to see the carbon estimate and scoring result.
               </div>
             ) : (
               <div className="space-y-4 text-sm text-[rgb(var(--app-ink))]">

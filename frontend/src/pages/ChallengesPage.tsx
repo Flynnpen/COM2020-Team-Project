@@ -217,7 +217,7 @@ export default function ChallengesPage() {
   return (
     <PageShell
       title="Challenges"
-      subtitle="Complete challenges to earn points (and unlock SDG characters later)."
+      subtitle="Complete challenges to earn points and climb the rankings."
       right={
         tab === "Personal challenges" ? (
           <select
