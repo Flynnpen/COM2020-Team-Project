@@ -1,18 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import PageShell from "../components/PageShell";
 import { getGroups } from "../api/groups";
-import { getDemoUser } from "../auth/demoAuth";
+import { useAuth } from "../auth/AuthProvider";
 import type { Group } from "../api/types";
 
 export default function ProfilePage() {
-  // local fetch for group name + counts
+  const { user } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true); // keep simple for now
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const user = useMemo(() => getDemoUser(), []); // grab from localStorage
 
   useEffect(() => {
-    // small fetch to pull groups so we can show the name and member count
     async function load() {
       setLoading(true);
       setError(null);
@@ -29,7 +27,6 @@ export default function ProfilePage() {
     load();
   }, []);
 
-  // match group id -> group object for display
   const group = useMemo(() => {
     if (!user?.group_id) return null;
     return groups.find((g) => g.group_id === user.group_id) || null;
@@ -53,7 +50,6 @@ export default function ProfilePage() {
         {user && (
           <div className="space-y-4">
             <div>
-              {/* basic user info (all from localStorage demo auth) */}
               <div className="text-xs uppercase tracking-wide text-gray-500">Account</div>
               <div className="mt-2 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl bg-white p-4">
@@ -78,7 +74,6 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              {/* group info is looked up from the groups list */}
               <div className="text-xs uppercase tracking-wide text-gray-500">Group</div>
               <div className="mt-2 rounded-xl bg-white p-4">
                 {loading && <div className="text-sm text-gray-600">Loading group...</div>}

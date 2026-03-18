@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import PageShell from "../components/PageShell";
 import { getGroups, joinGroup } from "../api/groups";
 import { createInvite, getInvites, respondToInvite } from "../api/invites";
-import { getDemoUser, setDemoUser } from "../auth/demoAuth";
+import { useAuth } from "../auth/AuthProvider";
 import type { Group, GroupInvite } from "../api/types";
 
 type Tab = "Invites" | "My groups" | "Find group" | "Send invite";
 
 export default function GroupsPage() {
+  const { setUser, user } = useAuth();
   const [tab, setTab] = useState<Tab>("My groups");
   const tabs: Tab[] = ["My groups", "Find group", "Invites", "Send invite"];
 
@@ -16,7 +17,6 @@ export default function GroupsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [joining, setJoining] = useState<string | null>(null);
-  const [user, setUser] = useState(() => getDemoUser());
 
   const [invites, setInvites] = useState<GroupInvite[]>([]);
   const [invitesLoading, setInvitesLoading] = useState(false);
@@ -44,11 +44,11 @@ export default function GroupsPage() {
   }, []);
 
   useEffect(() => {
-    async function loadInvitesForUser(demoUserId: string) {
+    async function loadInvitesForUser() {
       setInvitesLoading(true);
       setError(null);
       try {
-        const res = await getInvites(demoUserId);
+        const res = await getInvites();
         setInvites(res.invites || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load invites.");
@@ -58,7 +58,7 @@ export default function GroupsPage() {
     }
 
     if (tab === "Invites" && user?.user_id) {
-      loadInvitesForUser(user.user_id);
+      loadInvitesForUser();
     }
   }, [tab, user?.user_id]);
 
@@ -87,8 +87,7 @@ export default function GroupsPage() {
     setJoining(groupId || "leave");
     setError(null);
     try {
-      const res = await joinGroup(groupId, user.user_id);
-      setDemoUser(res.user);
+      const res = await joinGroup(groupId);
       setUser(res.user);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not update group.");
@@ -107,14 +106,13 @@ export default function GroupsPage() {
     setError(null);
     setInviteResult(null);
     try {
-      const res = await respondToInvite(invite.invite_id, decision, user.user_id);
+      const res = await respondToInvite(invite.invite_id, decision);
       setInvites((prev) =>
         prev.map((item) => (item.invite_id === invite.invite_id ? { ...item, ...res.invite } : item))
       );
 
       if (decision === "accept") {
         const updatedUser = { ...user, group_id: invite.group_id };
-        setDemoUser(updatedUser);
         setUser(updatedUser);
       }
 
@@ -152,8 +150,7 @@ export default function GroupsPage() {
         {
           username,
           message: inviteMessage.trim() || undefined,
-        },
-        user.user_id
+        }
       );
 
       const targetName = res.invitedUser.display_name || res.invitedUser.username;

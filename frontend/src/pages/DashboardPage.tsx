@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { getDemoUser } from "../auth/demoAuth";
 import { apiFetch } from "../api/client";
 import { getActionLogs } from "../api/actionLogs";
+import { useAuth } from "../auth/AuthProvider";
 import type { ActionType, GetActionTypesResponse } from "../api/types";
 import { ensureGamificationState, getPetDisplay } from "../gamification/store";
 
@@ -30,7 +30,7 @@ function buildDateRange(days: number) {
 }
 
 export default function DashboardPage() {
-  const user = getDemoUser();
+  const { user } = useAuth();
   const displayName = user?.display_name || user?.username || "there";
   const petState = user?.user_id ? ensureGamificationState(user.user_id) : null;
   const petDisplay = petState ? getPetDisplay(petState.pet.nickname) : null;
@@ -99,7 +99,7 @@ export default function DashboardPage() {
       try {
         const start = dateKeys[0];
         const end = dateKeys[dateKeys.length - 1];
-        const res = await getActionLogs(user.user_id, start, end);
+        const res = await getActionLogs(start, end);
         if (!cancelled) setLogs(res.logs || []);
       } catch (err) {
         if (!cancelled) {
