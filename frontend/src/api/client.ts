@@ -1,4 +1,4 @@
-import { getDemoUserId } from "../auth/demoAuth";
+import { getAuthUserId } from "../auth/authSession";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -12,7 +12,7 @@ export async function apiFetch<T>(
   options: ApiFetchOptions = {}
 ): Promise<T> {
   const { skipAuth = false, headers, ...rest } = options;
-  const userId = skipAuth ? null : getDemoUserId();
+  const userId = skipAuth ? null : getAuthUserId();
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,

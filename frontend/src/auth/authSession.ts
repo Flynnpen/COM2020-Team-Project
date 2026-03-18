@@ -1,4 +1,4 @@
-export type DemoUser = {
+export type AuthUser = {
   user_id: string;
   username: string;
   display_name: string | null;
@@ -6,8 +6,8 @@ export type DemoUser = {
   group_id: string | null;
 };
 
-const STORAGE_KEY = "demo_user";
-const AUTH_EVENT = "demo-user-changed";
+const STORAGE_KEY = "auth_user";
+const AUTH_EVENT = "auth-user-changed";
 
 function canUseBrowserStorage() {
   return typeof window !== "undefined" && typeof localStorage !== "undefined";
@@ -18,34 +18,34 @@ function emitAuthChange() {
   window.dispatchEvent(new CustomEvent(AUTH_EVENT));
 }
 
-export function setDemoUser(user: DemoUser) {
+export function setAuthUser(user: AuthUser) {
   if (!canUseBrowserStorage()) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
   emitAuthChange();
 }
 
-export function getDemoUser(): DemoUser | null {
+export function getAuthUser(): AuthUser | null {
   if (!canUseBrowserStorage()) return null;
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as DemoUser;
+    return JSON.parse(raw) as AuthUser;
   } catch {
     return null;
   }
 }
 
-export function getDemoUserId(): string | null {
-  return getDemoUser()?.user_id || null;
+export function getAuthUserId(): string | null {
+  return getAuthUser()?.user_id || null;
 }
 
-export function clearDemoUser() {
+export function clearAuthUser() {
   if (!canUseBrowserStorage()) return;
   localStorage.removeItem(STORAGE_KEY);
   emitAuthChange();
 }
 
-export function subscribeDemoUser(listener: () => void) {
+export function subscribeAuthUser(listener: () => void) {
   if (typeof window === "undefined") {
     return () => {};
   }

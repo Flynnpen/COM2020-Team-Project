@@ -239,9 +239,9 @@ export default function DashboardPage() {
           ) : (
             <div className="p-6">
               <div className="app-card-soft p-5">
-                <div className="text-sm font-semibold text-[rgb(var(--app-ink))]">Pet sync pending</div>
+                <div className="text-sm font-semibold text-[rgb(var(--app-ink))]">Pet profile unavailable</div>
                 <div className="mt-2 text-sm app-muted">
-                  Your pet profile will appear here once companion data is available.
+                  Create a companion in the pet hub to see its status and coin balance here.
                 </div>
               </div>
             </div>

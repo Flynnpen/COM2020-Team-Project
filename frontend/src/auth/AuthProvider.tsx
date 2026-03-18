@@ -7,30 +7,30 @@ import {
   type ReactNode,
 } from "react";
 import {
-  clearDemoUser,
-  getDemoUser,
-  setDemoUser,
-  subscribeDemoUser,
-  type DemoUser,
-} from "./demoAuth";
+  clearAuthUser,
+  getAuthUser,
+  setAuthUser,
+  subscribeAuthUser,
+  type AuthUser,
+} from "./authSession";
 
 type AuthContextValue = {
-  user: DemoUser | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
-  setUser: (user: DemoUser) => void;
+  setUser: (user: AuthUser) => void;
   clearUser: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUserState] = useState<DemoUser | null>(null);
+  const [user, setUserState] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    setUserState(getDemoUser());
+    setUserState(getAuthUser());
 
-    return subscribeDemoUser(() => {
-      setUserState(getDemoUser());
+    return subscribeAuthUser(() => {
+      setUserState(getAuthUser());
     });
   }, []);
 
@@ -38,8 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       isAuthenticated: Boolean(user),
-      setUser: setDemoUser,
-      clearUser: clearDemoUser,
+      setUser: setAuthUser,
+      clearUser: clearAuthUser,
     }),
     [user]
   );
