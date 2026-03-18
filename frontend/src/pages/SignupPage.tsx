@@ -61,46 +61,73 @@ export default function SignupPage() {
           subtitle="Set up your player profile and jump straight into the challenge."
         >
           <form className="space-y-3" onSubmit={onSubmit}>
-            <input
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-              placeholder="Display name (optional)"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              autoComplete="nickname"
-            />
-            <input
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
-            />
-            <input
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-              placeholder="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-            <input
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-              placeholder="Confirm password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-            />
+            <div className="space-y-1.5">
+              <label htmlFor="signup-display-name" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Display name
+              </label>
+              <input
+                id="signup-display-name"
+                className="app-input"
+                placeholder="Display name (optional)"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                autoComplete="nickname"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="signup-username" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Username
+              </label>
+              <input
+                id="signup-username"
+                className="app-input"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                aria-invalid={Boolean(error && !username.trim())}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="signup-password" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Password
+              </label>
+              <input
+                id="signup-password"
+                className="app-input"
+                placeholder="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                aria-invalid={Boolean(error && password.length > 0 && password.length < 6)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="signup-confirm-password" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Confirm password
+              </label>
+              <input
+                id="signup-confirm-password"
+                className="app-input"
+                placeholder="Confirm password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                aria-invalid={Boolean(error && confirmPassword.length > 0 && password !== confirmPassword)}
+              />
+            </div>
             <button
               type="submit"
-              className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-medium text-white hover:bg-emerald-500"
+              className="app-button-primary w-full"
               disabled={submitting}
             >
               {submitting ? "Creating account..." : "Create account"}
             </button>
 
             {error && (
-              <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
+              <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700" role="alert" aria-live="polite">
                 {error}
               </div>
             )}

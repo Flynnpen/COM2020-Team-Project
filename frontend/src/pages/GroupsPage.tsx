@@ -219,12 +219,18 @@ export default function GroupsPage() {
         {!loading && tab === "Find group" && (
           <div className="space-y-3">
             <div className="text-sm font-medium text-gray-900">Find a group</div>
-            <input
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-              placeholder="Search societies..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <div className="space-y-1.5">
+              <label htmlFor="group-search" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Search groups
+              </label>
+              <input
+                id="group-search"
+                className="app-input"
+                placeholder="Search societies..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
             <div className="space-y-2">
               {filteredGroups.length === 0 && (
                 <div className="rounded-xl bg-white p-4 text-sm text-gray-700">
@@ -334,18 +340,30 @@ export default function GroupsPage() {
                 <div className="rounded-xl bg-gray-50 p-3 text-xs text-gray-600">
                   Inviting to: {currentGroup.name}
                 </div>
-                <input
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-                  placeholder="Enter username..."
-                  value={inviteTarget}
-                  onChange={(e) => setInviteTarget(e.target.value)}
-                />
-                <input
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-                  placeholder="Optional message..."
-                  value={inviteMessage}
-                  onChange={(e) => setInviteMessage(e.target.value)}
-                />
+                <div className="space-y-1.5">
+                  <label htmlFor="invite-username" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                    Username to invite
+                  </label>
+                  <input
+                    id="invite-username"
+                    className="app-input"
+                    placeholder="Enter username..."
+                    value={inviteTarget}
+                    onChange={(e) => setInviteTarget(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="invite-message" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                    Invite message
+                  </label>
+                  <input
+                    id="invite-message"
+                    className="app-input"
+                    placeholder="Optional message..."
+                    value={inviteMessage}
+                    onChange={(e) => setInviteMessage(e.target.value)}
+                  />
+                </div>
                 <button
                   onClick={handleSendInvite}
                   className="rounded-xl bg-gray-900 px-4 py-3 text-sm font-medium text-white"

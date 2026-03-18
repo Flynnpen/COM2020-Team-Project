@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../api/client";
 import { getCoinBalance } from "../api/coins";
 import { getActionLogs } from "../api/actionLogs";
@@ -53,27 +53,82 @@ function PetSetupModal({
   submitting: boolean;
   error: string | null;
 }) {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const nicknameInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    nicknameInputRef.current?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Tab" || !dialogRef.current) return;
+
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href]'
+        )
+      );
+
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.52)] p-4 backdrop-blur-sm">
-      <div className="w-full max-w-4xl overflow-hidden rounded-[2rem] border border-white/60 bg-[linear-gradient(145deg,rgba(244,252,246,0.98),rgba(255,248,234,0.98))] shadow-[0_30px_90px_rgba(15,23,42,0.24)]">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.52)] p-4 backdrop-blur-sm"
+      role="presentation"
+    >
+      <div
+        ref={dialogRef}
+        className="w-full max-w-4xl overflow-hidden rounded-[2rem] border border-white/60 bg-[linear-gradient(145deg,rgba(244,252,246,0.98),rgba(255,248,234,0.98))] shadow-[0_30px_90px_rgba(15,23,42,0.24)]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pet-setup-title"
+        aria-describedby="pet-setup-description"
+      >
         <div className="grid gap-0 lg:grid-cols-[0.92fr_1.08fr]">
           <div className="bg-[linear-gradient(160deg,rgba(16,185,129,0.18),rgba(250,204,21,0.15))] p-6 lg:p-8">
             <div className="app-chip bg-white/80">Companion setup</div>
-            <h2 className="mt-4 text-4xl font-semibold tracking-tight text-[rgb(var(--app-ink))]">
+            <h2 id="pet-setup-title" className="mt-4 text-4xl font-semibold tracking-tight text-[rgb(var(--app-ink))]">
               Choose your first campus companion
             </h2>
-            <p className="mt-4 max-w-md text-sm leading-7 app-muted">
+            <p id="pet-setup-description" className="mt-4 max-w-md text-sm leading-7 app-muted">
               Pick a starter pet and give it a name before you start tracking progress.
             </p>
           </div>
 
           <div className="p-6 lg:p-8">
-            <div className="grid gap-4 md:grid-cols-3">
+            <fieldset>
+              <legend className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Choose a companion type
+              </legend>
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
               {petCatalog.map((option) => (
                 <button
                   key={option.pet_type}
                   type="button"
                   onClick={() => onChooseType(option.pet_type)}
+                  aria-pressed={petType === option.pet_type}
+                  aria-label={`Choose ${option.name}`}
                   className={`rounded-[1.6rem] border p-5 text-left transition ${
                     petType === option.pet_type
                       ? "border-transparent bg-[rgb(var(--app-brand))] text-white shadow-sm"
@@ -102,17 +157,26 @@ function PetSetupModal({
                   </div>
                 </button>
               ))}
+              </div>
+            </fieldset>
+
+            <div className="mt-6 space-y-1.5">
+              <label htmlFor="pet-setup-nickname" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Companion nickname
+              </label>
+              <input
+                id="pet-setup-nickname"
+                ref={nicknameInputRef}
+                className="app-input"
+                value={nickname}
+                onChange={(e) => onChangeNickname(e.target.value)}
+                placeholder="Companion nickname"
+                aria-invalid={Boolean(error && !nickname.trim())}
+              />
             </div>
 
-            <input
-              className="mt-6 w-full rounded-[1.35rem] border border-[rgb(var(--app-line))] bg-white px-4 py-3 text-sm text-[rgb(var(--app-ink))]"
-              value={nickname}
-              onChange={(e) => onChangeNickname(e.target.value)}
-              placeholder="Companion nickname"
-            />
-
             {error && (
-              <div className="mt-4 rounded-[1.2rem] bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mt-4 rounded-[1.2rem] bg-red-50 px-4 py-3 text-sm text-red-700" role="alert" aria-live="polite">
                 {error}
               </div>
             )}
@@ -121,7 +185,7 @@ function PetSetupModal({
               type="button"
               onClick={onSubmit}
               disabled={submitting}
-              className="mt-6 rounded-[1.35rem] bg-[rgb(var(--app-ink))] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+              className="app-button-primary mt-6 disabled:opacity-50"
             >
               {submitting ? "Creating companion..." : "Create companion"}
             </button>

@@ -45,32 +45,46 @@ export default function LoginPage() {
           subtitle="Pick up where you left off and keep your carbon challenge going."
         >
           <form className="space-y-3" onSubmit={onSubmit}>
-            <input
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
-            />
-            <input
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-              placeholder="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-            />
+            <div className="space-y-1.5">
+              <label htmlFor="login-username" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Username
+              </label>
+              <input
+                id="login-username"
+                className="app-input"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                aria-invalid={Boolean(error && !username.trim())}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="login-password" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Password
+              </label>
+              <input
+                id="login-password"
+                className="app-input"
+                placeholder="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                aria-invalid={Boolean(error && !password)}
+              />
+            </div>
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-800"
+              className="app-button-primary w-full"
               disabled={submitting}
             >
               {submitting ? "Signing in..." : "Sign in"}
             </button>
 
             {error && (
-              <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
+              <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700" role="alert" aria-live="polite">
                 {error}
               </div>
             )}

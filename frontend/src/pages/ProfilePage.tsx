@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import PageShell from "../components/PageShell";
 import { getGroups } from "../api/groups";
 import { useAuth } from "../auth/AuthProvider";
 import type { Group } from "../api/types";
 
+type LayoutContext = {
+  accessibilityMode: boolean;
+  setAccessibilityMode: (enabled: boolean) => void;
+};
+
 export default function ProfilePage() {
   const { user } = useAuth();
+  const { accessibilityMode, setAccessibilityMode } = useOutletContext<LayoutContext>();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +55,7 @@ export default function ProfilePage() {
         )}
 
         {user && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
               <div className="text-xs uppercase tracking-wide text-gray-500">Account</div>
               <div className="mt-2 grid gap-3 sm:grid-cols-2">
@@ -88,6 +95,42 @@ export default function ProfilePage() {
                 {!loading && !group && (
                   <div className="text-sm text-gray-700">No group joined yet.</div>
                 )}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs uppercase tracking-wide text-gray-500">Settings</div>
+              <div className="mt-2 rounded-xl bg-white p-4">
+                <label
+                  htmlFor="profile-accessibility-mode"
+                  className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">Accessibility mode</div>
+                    <div className="text-xs text-gray-500">
+                      Stronger focus styles, clearer borders, and easier-to-see controls.
+                    </div>
+                  </div>
+                  <span
+                    className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition ${
+                      accessibilityMode ? "bg-[rgb(var(--app-brand))]" : "bg-[rgb(var(--app-line))]"
+                    }`}
+                  >
+                    <input
+                      id="profile-accessibility-mode"
+                      type="checkbox"
+                      checked={accessibilityMode}
+                      onChange={(e) => setAccessibilityMode(e.target.checked)}
+                      className="sr-only"
+                      aria-label="Toggle accessibility mode"
+                    />
+                    <span
+                      className={`absolute left-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                        accessibilityMode ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </span>
+                </label>
               </div>
             </div>
           </div>

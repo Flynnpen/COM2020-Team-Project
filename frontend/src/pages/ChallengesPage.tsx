@@ -220,16 +220,19 @@ export default function ChallengesPage() {
       subtitle="Complete challenges to earn points and climb the rankings."
       right={
         tab === "Personal challenges" ? (
-          <select
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
-            value={time}
-            onChange={(e) => setTime(e.target.value as TimeFilter)}
-          >
-            <option>Daily</option>
-            <option>Weekly</option>
-            <option>Monthly</option>
-            <option>Seasonal</option>
-          </select>
+          <label className="flex items-center gap-2 text-sm font-medium text-[rgb(var(--app-ink))]">
+            <span>Time range</span>
+            <select
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
+              value={time}
+              onChange={(e) => setTime(e.target.value as TimeFilter)}
+            >
+              <option>Daily</option>
+              <option>Weekly</option>
+              <option>Monthly</option>
+              <option>Seasonal</option>
+            </select>
+          </label>
         ) : null
       }
     >
@@ -290,17 +293,23 @@ export default function ChallengesPage() {
         )}
         {!loading && filteredChallenges.length > 0 && (
           <div className="space-y-3">
-            <select
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
-              value={selectedId ?? ""}
-              onChange={(e) => setSelectedId(e.target.value)}
-            >
-              {filteredChallenges.map((c) => (
-                <option key={c.challenge_id} value={c.challenge_id}>
-                  {c.title}
-                </option>
-              ))}
-            </select>
+            <div className="space-y-1.5">
+              <label htmlFor="challenge-select" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Challenge
+              </label>
+              <select
+                id="challenge-select"
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm"
+                value={selectedId ?? ""}
+                onChange={(e) => setSelectedId(e.target.value)}
+              >
+                {filteredChallenges.map((c) => (
+                  <option key={c.challenge_id} value={c.challenge_id}>
+                    {c.title}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {selectedChallenge && (
               <div className="rounded-xl bg-white p-4 space-y-2">
@@ -320,26 +329,39 @@ export default function ChallengesPage() {
               <div className="text-xs font-medium text-gray-900">
                 Submit your total CO2e
               </div>
-              <input
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
-                placeholder="e.g., 5.5"
-                value={totalCO2e}
-                onChange={(e) => setTotalCO2e(e.target.value)}
-              />
+              <div className="space-y-1.5">
+                <label htmlFor="challenge-total-co2e" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                  Total CO2e
+                </label>
+                <input
+                  id="challenge-total-co2e"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
+                  placeholder="e.g., 5.5"
+                  value={totalCO2e}
+                  onChange={(e) => setTotalCO2e(e.target.value)}
+                />
+              </div>
               {requiresEvidence && (
                 <>
-                  <textarea
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
-                    placeholder="Evidence notes (required note or image)"
-                    rows={3}
-                    value={evidenceText}
-                    onChange={(e) => setEvidenceText(e.target.value)}
-                  />
+                  <div className="space-y-1.5">
+                    <label htmlFor="challenge-evidence-note" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                      Evidence note
+                    </label>
+                    <textarea
+                      id="challenge-evidence-note"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
+                      placeholder="Evidence notes (required note or image)"
+                      rows={3}
+                      value={evidenceText}
+                      onChange={(e) => setEvidenceText(e.target.value)}
+                    />
+                  </div>
                   <div className="space-y-2 rounded-xl border border-gray-100 bg-gray-50 p-3">
-                    <div className="text-xs text-gray-700">
+                    <label htmlFor="challenge-evidence-upload" className="text-xs text-gray-700">
                       Upload evidence images (max {MAX_EVIDENCE_IMAGES})
-                    </div>
+                    </label>
                     <input
+                      id="challenge-evidence-upload"
                       type="file"
                       accept="image/*"
                       multiple
