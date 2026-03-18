@@ -260,3 +260,105 @@ export type DecideSubmissionResponse = {
   submission: ChallengeSubmission;
   moderationDecision: ModerationDecision;
 };
+
+export type Pet = {
+  pet_id: string;
+  user_id: string;
+  pet_type: string;
+  nickname: string;
+  image_url: string | null;
+  status: string;
+  health: number;
+  happiness: number;
+  energy: number;
+  level: number;
+  xp: number;
+  streak: number;
+  last_active_date: string | null;
+  adopted_at: string;
+};
+
+export type GetMyPetResponse = {
+  pet: Pet;
+};
+
+export type CreatePetRequest = {
+  pet_type: string;
+  nickname?: string;
+};
+
+export type CreatePetResponse = {
+  pet: Pet;
+};
+
+export type UpdatePetNicknameResponse = {
+  pet: {
+    pet_id: string;
+    nickname: string;
+  };
+};
+
+export type RevivePetResponse = {
+  pet: Pet;
+  coins_spent: number;
+  new_coin_balance: number;
+};
+
+export type CoinBalanceResponse = {
+  coins: number;
+};
+
+export type InventoryItem = {
+  pet_item_id: string;
+  quantity: number;
+  equipped: boolean;
+  acquired_at: string;
+  items: {
+    item_id: string;
+    name: string;
+    description: string | null;
+    image_url: string | null;
+    category: string;
+    rarity: string | null;
+  };
+};
+
+export type InventoryResponse = {
+  inventory: InventoryItem[];
+};
+
+export type InventoryMutationResponse = {
+  message: string;
+  inventory_entry: {
+    pet_item_id: string;
+    quantity?: number;
+    equipped: boolean;
+  };
+};
+
+export type ShopItem = {
+  item_id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  category: string;
+  coin_cost: number;
+  rarity: string | null;
+};
+
+export type ShopItemsResponse = {
+  items: ShopItem[];
+};
+
+export type BuyShopItemResponse = {
+  message: string;
+  inventory_entry: {
+    pet_item_id: string;
+    pet_id: string;
+    item_id: string;
+    quantity: number;
+    equipped: boolean;
+  };
+  coins_spent: number;
+  new_coin_balance: number;
+};
