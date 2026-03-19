@@ -3,10 +3,19 @@ import { Link } from "react-router-dom";
 import { apiFetch } from "../api/client";
 import { getCoinBalance } from "../api/coins";
 import { getActionLogs } from "../api/actionLogs";
+import { getChallenges } from "../api/challenges";
+import { getUserLeaderboards } from "../api/leaderboards";
 import { useAuth } from "../auth/AuthProvider";
 import PageShell from "../components/PageShell";
 import { createPet, getMyPet, getPetCatalog } from "../api/pets";
-import type { ActionType, GetActionTypesResponse, Pet, PetCatalogEntry } from "../api/types";
+import type {
+  ActionType,
+  Challenge,
+  GetActionTypesResponse,
+  Pet,
+  PetCatalogEntry,
+  UserLeaderboardEntry,
+} from "../api/types";
 
 type DateRangeOption = 7 | 30;
 
@@ -34,6 +43,20 @@ function buildDateRange(days: number) {
 
 function isMissingPetError(error: unknown) {
   return error instanceof Error && /no pet found|user has no pet/i.test(error.message);
+}
+
+function isCurrentChallenge(challenge: Challenge, today: string) {
+  const startsOkay = !challenge.start_date || challenge.start_date <= today;
+  const endsOkay = !challenge.end_date || challenge.end_date >= today;
+  return startsOkay && endsOkay;
+}
+
+function formatShortDate(date: string | null) {
+  if (!date) return "No deadline";
+  return new Date(`${date}T00:00:00`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+  });
 }
 
 function PetSetupModal({
@@ -214,6 +237,9 @@ export default function DashboardPage() {
   const [pet, setPet] = useState<Pet | null>(null);
   const [petCatalog, setPetCatalog] = useState<PetCatalogEntry[]>([]);
   const [coins, setCoins] = useState<number | null>(null);
+  const [leaderboardEntries, setLeaderboardEntries] = useState<UserLeaderboardEntry[]>([]);
+  const [personalChallenges, setPersonalChallenges] = useState<Challenge[]>([]);
+  const [groupChallenges, setGroupChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [petSetupType, setPetSetupType] = useState("");
@@ -247,7 +273,8 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       try {
-        const [typesRes, coinRes, petRes, catalogRes] = await Promise.all([
+        const [typesRes, coinRes, petRes, catalogRes, leaderboardsRes, personalRes, groupRes] =
+          await Promise.all([
           apiFetch<GetActionTypesResponse>("/action-types"),
           getCoinBalance(),
           getMyPet().catch((err) => {
@@ -255,12 +282,18 @@ export default function DashboardPage() {
             throw err;
           }),
           getPetCatalog(),
+          getUserLeaderboards(user.group_id || undefined),
+          getChallenges("personal"),
+          getChallenges("group"),
         ]);
         if (!cancelled) {
           setActionTypes(typesRes.actionTypes);
           setCoins(coinRes.coins);
           setPet(petRes?.pet ?? null);
           setPetCatalog(catalogRes.pets || []);
+          setLeaderboardEntries(leaderboardsRes.leaderboards || []);
+          setPersonalChallenges(personalRes.challenges || []);
+          setGroupChallenges(groupRes.challenges || []);
           setPetSetupType((current) => current || catalogRes.pets?.[0]?.pet_type || "");
           setPetSetupNickname((petRes?.pet?.nickname || user.display_name || user.username || "").trim());
         }
@@ -338,6 +371,57 @@ export default function DashboardPage() {
     [dateKeys.length, totalKg]
   );
   const hasChartData = totalKg > 0;
+  const currentFocusLabel = category === "all" ? "All categories" : category;
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const currentPersonalChallenges = useMemo(
+    () => personalChallenges.filter((challenge) => isCurrentChallenge(challenge, today)),
+    [personalChallenges, today]
+  );
+  const currentGroupChallenges = useMemo(
+    () => groupChallenges.filter((challenge) => isCurrentChallenge(challenge, today)),
+    [groupChallenges, today]
+  );
+  const evidenceRequiredChallenges = useMemo(
+    () =>
+      [...currentPersonalChallenges, ...currentGroupChallenges].filter(
+        (challenge) => challenge.rules?.evidence_required === true
+      ).length,
+    [currentGroupChallenges, currentPersonalChallenges]
+  );
+  const nextChallengeDeadline = useMemo(() => {
+    const timed = [...currentPersonalChallenges, ...currentGroupChallenges].filter(
+      (challenge) => Boolean(challenge.end_date)
+    );
+
+    if (timed.length === 0) return null;
+
+    return timed.sort((a, b) => String(a.end_date).localeCompare(String(b.end_date)))[0] ?? null;
+  }, [currentGroupChallenges, currentPersonalChallenges]);
+  const leaderboardContext = useMemo(() => {
+    if (!user?.user_id || leaderboardEntries.length === 0) {
+      return {
+        leader: null as UserLeaderboardEntry | null,
+        current: null as UserLeaderboardEntry | null,
+        below: null as UserLeaderboardEntry | null,
+        currentRank: null as number | null,
+      };
+    }
+
+    const leader = leaderboardEntries[0] ?? null;
+    const currentIndex = leaderboardEntries.findIndex((entry) => entry.user_id === user.user_id);
+    const current = currentIndex >= 0 ? leaderboardEntries[currentIndex] : null;
+    const below =
+      currentIndex >= 0 && currentIndex < leaderboardEntries.length - 1
+        ? leaderboardEntries[currentIndex + 1]
+        : null;
+
+    return {
+      leader,
+      current,
+      below,
+      currentRank: currentIndex >= 0 ? currentIndex + 1 : null,
+    };
+  }, [leaderboardEntries, user?.user_id]);
 
   async function handleCreatePetFromDashboard() {
     const nickname = petSetupNickname.trim();
@@ -521,6 +605,178 @@ export default function DashboardPage() {
         </div>
         </section>
 
+        <section className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
+          <div className="app-card p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="app-chip">Group position</div>
+                <h2 className="mt-3 app-section-title">Competitive snapshot</h2>
+                <p className="mt-2 text-sm app-muted">
+                  {user?.group_id
+                    ? "Your current standing within your group leaderboard."
+                    : "Join a group to unlock group-only leaderboard context."}
+                </p>
+              </div>
+              <Link to="/app/leaderboards" className="app-button-secondary">
+                Full rankings
+              </Link>
+            </div>
+
+            {leaderboardContext.leader && leaderboardContext.current ? (
+              <div className="mt-5 space-y-3">
+                <div className="flex items-center gap-4 rounded-[1.5rem] border border-[rgb(var(--app-line))] bg-white p-4 shadow-sm">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-sm font-semibold text-amber-800">
+                    #1
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs uppercase tracking-wide app-muted">1st place</div>
+                    <div className="truncate text-lg font-semibold text-[rgb(var(--app-ink))]">
+                      {leaderboardContext.leader.display_name || leaderboardContext.leader.username}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs uppercase tracking-wide app-muted">Points</div>
+                    <div className="text-lg font-semibold text-[rgb(var(--app-ink))]">
+                      {leaderboardContext.leader.points}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 rounded-[1.6rem] border border-transparent bg-[rgb(var(--app-brand))] p-4 text-white shadow-sm">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-sm font-semibold text-white">
+                    #{leaderboardContext.currentRank}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs uppercase tracking-wide text-white/75">You</div>
+                    <div className="truncate text-lg font-semibold">
+                      {leaderboardContext.current.display_name || leaderboardContext.current.username}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs uppercase tracking-wide text-white/75">Points</div>
+                    <div className="text-lg font-semibold">{leaderboardContext.current.points}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 rounded-[1.5rem] border border-[rgb(var(--app-line))] bg-white p-4 shadow-sm">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[rgb(var(--app-soft))] text-sm font-semibold text-[rgb(var(--app-ink))]">
+                    {leaderboardContext.below ? `#${(leaderboardContext.currentRank ?? 0) + 1}` : "--"}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs uppercase tracking-wide app-muted">
+                      {leaderboardContext.below ? "Directly below" : "Position edge"}
+                    </div>
+                    <div className="truncate text-lg font-semibold text-[rgb(var(--app-ink))]">
+                      {leaderboardContext.below
+                        ? leaderboardContext.below.display_name || leaderboardContext.below.username
+                        : "No one below you"}
+                    </div>
+                    {!leaderboardContext.below ? (
+                      <div className="mt-1 text-sm app-muted">
+                        You’re holding the final visible spot in this leaderboard view.
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs uppercase tracking-wide app-muted">Points</div>
+                    <div className="text-lg font-semibold text-[rgb(var(--app-ink))]">
+                      {leaderboardContext.below ? leaderboardContext.below.points : "--"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-5 rounded-[1.5rem] border border-dashed border-[rgb(var(--app-line))] bg-[rgb(var(--app-soft))]/60 p-5">
+                <div className="text-sm font-semibold text-[rgb(var(--app-ink))]">
+                  Ranking context not available yet
+                </div>
+                <div className="mt-2 text-sm app-muted">
+                  Once your leaderboard data is available, this panel will show the leader, your rank, and who is just below you.
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="app-card p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="app-chip">Challenge status</div>
+                <h2 className="mt-3 app-section-title">Current mission board</h2>
+                <p className="mt-2 text-sm app-muted">
+                  A quick read on what’s currently active and which challenges may need evidence.
+                </p>
+              </div>
+              <Link to="/app/challenges" className="app-button-secondary">
+                Open challenges
+              </Link>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="app-stat">
+                <div className="text-xs uppercase tracking-wide app-muted">Active personal</div>
+                <div className="mt-1 text-2xl font-semibold text-[rgb(var(--app-ink))]">
+                  {currentPersonalChallenges.length}
+                </div>
+              </div>
+              <div className="app-stat">
+                <div className="text-xs uppercase tracking-wide app-muted">Active group</div>
+                <div className="mt-1 text-2xl font-semibold text-[rgb(var(--app-ink))]">
+                  {currentGroupChallenges.length}
+                </div>
+              </div>
+              <div className="app-stat">
+                <div className="text-xs uppercase tracking-wide app-muted">Evidence needed</div>
+                <div className="mt-1 text-2xl font-semibold text-[rgb(var(--app-ink))]">
+                  {evidenceRequiredChallenges}
+                </div>
+              </div>
+              <div className="app-stat">
+                <div className="text-xs uppercase tracking-wide app-muted">Next deadline</div>
+                <div className="mt-1 text-2xl font-semibold text-[rgb(var(--app-ink))]">
+                  {nextChallengeDeadline ? formatShortDate(nextChallengeDeadline.end_date) : "None"}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {currentPersonalChallenges[0] ? (
+                <div className="app-card-soft p-4">
+                  <div className="text-xs uppercase tracking-wide app-muted">Featured personal challenge</div>
+                  <div className="mt-2 text-lg font-semibold text-[rgb(var(--app-ink))]">
+                    {currentPersonalChallenges[0].title}
+                  </div>
+                  <div className="mt-1 text-sm app-muted">
+                    Ends {formatShortDate(currentPersonalChallenges[0].end_date)}
+                  </div>
+                </div>
+              ) : null}
+
+              {currentGroupChallenges[0] ? (
+                <div className="app-card-soft p-4">
+                  <div className="text-xs uppercase tracking-wide app-muted">Featured group challenge</div>
+                  <div className="mt-2 text-lg font-semibold text-[rgb(var(--app-ink))]">
+                    {currentGroupChallenges[0].title}
+                  </div>
+                  <div className="mt-1 text-sm app-muted">
+                    Ends {formatShortDate(currentGroupChallenges[0].end_date)}
+                  </div>
+                </div>
+              ) : null}
+
+              {currentPersonalChallenges.length === 0 && currentGroupChallenges.length === 0 ? (
+                <div className="rounded-[1.5rem] border border-dashed border-[rgb(var(--app-line))] bg-[rgb(var(--app-soft))]/60 p-5">
+                  <div className="text-sm font-semibold text-[rgb(var(--app-ink))]">
+                    No active challenges right now
+                  </div>
+                  <div className="mt-2 text-sm app-muted">
+                    Check the challenges area to browse past events or see when the next set opens.
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </section>
+
         <section className="app-card p-6">
         <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1">
@@ -532,31 +788,61 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <select
-              className="rounded-xl border border-[rgb(var(--app-line))] bg-white px-3 py-2 text-sm text-[rgb(var(--app-ink))]"
-              value={dateRange}
-              onChange={(e) => setDateRange(Number(e.target.value) as DateRangeOption)}
-            >
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-            </select>
+            <label className="space-y-1 text-xs font-medium uppercase tracking-[0.14em] app-muted">
+              <span>Range</span>
+              <select
+                className="block rounded-xl border border-[rgb(var(--app-line))] bg-white px-3 py-2 text-sm normal-case tracking-normal text-[rgb(var(--app-ink))]"
+                value={dateRange}
+                onChange={(e) => setDateRange(Number(e.target.value) as DateRangeOption)}
+              >
+                <option value={7}>Last 7 days</option>
+                <option value={30}>Last 30 days</option>
+              </select>
+            </label>
 
-            <select
-              className="rounded-xl border border-[rgb(var(--app-line))] bg-white px-3 py-2 text-sm text-[rgb(var(--app-ink))]"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c === "all" ? "All categories" : c}
-                </option>
-              ))}
-            </select>
+            <label className="space-y-1 text-xs font-medium uppercase tracking-[0.14em] app-muted">
+              <span>Category</span>
+              <select
+                className="block rounded-xl border border-[rgb(var(--app-line))] bg-white px-3 py-2 text-sm normal-case tracking-normal text-[rgb(var(--app-ink))]"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c === "all" ? "All categories" : c}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
 
         {loading ? (
-          <div className="text-sm app-muted">Loading chart...</div>
+          <div className="space-y-4">
+            <div className="rounded-[1.5rem] bg-[rgb(var(--app-soft))] p-4">
+              <div className="h-4 w-40 animate-pulse rounded-full bg-white/90" />
+              <div className="mt-3 h-3 w-64 animate-pulse rounded-full bg-white/70" />
+              <div className="mt-6 flex h-52 items-end gap-2">
+                {Array.from({ length: 7 }).map((_, index) => (
+                  <div key={index} className="flex flex-1 flex-col items-center gap-2">
+                    <div
+                      className="w-full animate-pulse rounded-t-xl bg-white/75"
+                      style={{ height: `${24 + index * 10}%` }}
+                    />
+                    <div className="h-2 w-8 animate-pulse rounded-full bg-white/65" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="app-stat">
+                  <div className="h-3 w-20 animate-pulse rounded-full bg-[rgb(var(--app-soft))]" />
+                  <div className="mt-3 h-6 w-24 animate-pulse rounded-full bg-[rgb(var(--app-soft))]" />
+                </div>
+              ))}
+            </div>
+          </div>
         ) : error ? (
           <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">{error}</div>
         ) : !hasChartData ? (
@@ -614,7 +900,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="mt-4 grid gap-3 md:grid-cols-4">
               <div className="app-stat">
                 <div className="text-xs uppercase tracking-wide app-muted">Total</div>
                 <div className="mt-1 text-xl font-semibold text-[rgb(var(--app-ink))]">
@@ -624,7 +910,7 @@ export default function DashboardPage() {
               <div className="app-stat">
                 <div className="text-xs uppercase tracking-wide app-muted">Category</div>
                 <div className="mt-1 text-xl font-semibold text-[rgb(var(--app-ink))]">
-                  {category === "all" ? "All" : category}
+                  {currentFocusLabel}
                 </div>
               </div>
               <div className="app-stat">
@@ -634,9 +920,48 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="app-stat">
+                <div className="text-xs uppercase tracking-wide app-muted">Active days</div>
+                <div className="mt-1 text-xl font-semibold text-[rgb(var(--app-ink))]">
+                  {activeDays}
+                </div>
+              </div>
+              <div className="app-stat">
                 <div className="text-xs uppercase tracking-wide app-muted">Confidence</div>
                 <div className="mt-1 text-xl font-semibold text-emerald-700">Medium</div>
                 <div className="mt-1 text-xs app-muted">Estimates can vary by context.</div>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="app-card-soft p-5">
+                <div className="text-xs uppercase tracking-wide app-muted">Current interpretation</div>
+                <div className="mt-2 text-lg font-semibold text-[rgb(var(--app-ink))]">
+                  {activeDays >= Math.ceil(dateKeys.length / 2)
+                    ? "You’re building a steady routine."
+                    : "There’s room to build consistency."}
+                </div>
+                <p className="mt-2 text-sm app-muted">
+                  {activeDays >= Math.ceil(dateKeys.length / 2)
+                    ? "You’ve logged impact on most days in this window, which is a strong base for challenges and streaks."
+                    : "Logging actions on more days will make your dashboard trend more meaningful and help your companion stay active."}
+                </p>
+              </div>
+              <div className="app-card-soft p-5">
+                <div className="text-xs uppercase tracking-wide app-muted">Next move</div>
+                <div className="mt-2 text-lg font-semibold text-[rgb(var(--app-ink))]">
+                  Keep momentum visible
+                </div>
+                <p className="mt-2 text-sm app-muted">
+                  Try logging one more action in your most common category or jump into a challenge to convert progress into points.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link to="/app/log-action" className="app-button-secondary">
+                    Add activity
+                  </Link>
+                  <Link to="/app/leaderboards" className="app-button-secondary">
+                    Check rankings
+                  </Link>
+                </div>
               </div>
             </div>
           </>
