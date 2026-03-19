@@ -15,7 +15,7 @@ function normalizeUserId(raw) {
 export async function listInvites(req, res, next) {
     try {
         const userId = normalizeUserId(req.headers["x-user-id"] || req.body?.user_id);
-        if (!userId) return res.status(400).json({erorr: 'Missing "x-user-id" header'});
+        if (!userId) return res.status(400).json({error: 'Missing "x-user-id" header'});
 
         const {data, error} = await supabaseUser
             .from("group_invites")
@@ -37,7 +37,6 @@ export async function listInvites(req, res, next) {
 
 export async function respondToInvite(req, res, next) {
     try {
-        console.log("HEADERS:", req.headers);
         const userId = normalizeUserId(req.headers["x-user-id"] || req.body?.user_id);
         if (!userId) return res.status(400).json({error: 'Missing "x-user-id" header'});
 

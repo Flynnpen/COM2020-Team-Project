@@ -50,7 +50,7 @@ export async function getCoinHistory(req, res, next) {
                 count: "exact",
             })
             .eq("user_id", userId)
-            .order("created_at", {asceding: false})
+            .order("created_at", {ascending: false})
             .range(offset, offset + limit - 1);
 
         if (error) return next(error);

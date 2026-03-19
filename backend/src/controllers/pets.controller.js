@@ -151,7 +151,7 @@ export async function updateNickname(req, res, next) {
             .from("pets")
             .update({nickname})
             .eq("user_id", userId)
-            .select("pet_id", nickname)
+            .select("pet_id, nickname")
             .maybeSingle();
 
         if (error) return next(error);
@@ -177,7 +177,7 @@ export async function revivePet(req, res, next) {
             .maybeSingle();
 
             if (petErr) return next(petErr);
-            if (!pet) res.status(404).json({error: "No pet found for this user"});
+            if (!pet) return res.status(404).json({error: "No pet found for this user"});
 
             if (pet.status === "alive") {
                 return res.status(400).json({error: "Pet is already alive"});

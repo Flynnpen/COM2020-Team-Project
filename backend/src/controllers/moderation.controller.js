@@ -51,18 +51,19 @@ export async function decideSubmission(req, res, next) {
 
         const {data: submission, error: subErr} = await supabaseAdmin
             .from("submissions")
-            .select("submission_id, status")
+            .select("submission_id, user_id, status")
             .eq("submission_id", submissionId)
             .single();
 
+        if (subErr) return next(subErr);
+        if (!submission) return res.status(404).json({error: "Submission not found"});
+        
         if (submission.user_id === moderatorId) {
             return res.status(403).json({
                 error: "Moderators cannot review their own submissions."
             });
         }
 
-        if (subErr) return next(subErr);
-        if (!submission) return res.status(404).json({error: "Submission not found"});
 
         if (submission.status !== "pending_review") {
             return res.status(400).json({
