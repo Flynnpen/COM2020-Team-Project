@@ -3,7 +3,7 @@ import { checkAndAwardBadges } from '../services/badges.service.js';
 import { calculateCarbonFromFactor } from '../services/carbon.service.js';
 import { awardFirstLogOfDay, awardStreakMilestone } from '../services/coins.service.js';
 
-const DEMO_USER_ID =
+/* const DEMO_USER_ID =
     process.env.DEMO_USER_ID || "c1aae9c3-5157-4a26-a7b3-28d8905cfef0";
 
 function normalizeUserId(raw) {
@@ -13,18 +13,19 @@ function normalizeUserId(raw) {
     if (uuidV4ish.test(raw)) return raw;
     if (raw === "demo-flynn" || raw === "demo") return DEMO_USER_ID;
     return raw;
-}
+} */
 
 export async function createActionLog(req, res, next) {
     try {
-        const {action_type_key, quantity, user_id} = req.body;
+        const {action_type_key, quantity} = req.body;
 
-        const demoUserId = normalizeUserId(req.header("x-user-id") || user_id);
-        if (!demoUserId) {
+        // const demoUserId = normalizeUserId(req.header("x-user-id") || user_id);
+        const userId = req.user.id;
+        /*if (!demoUserId) {
             return res.status(400).json({
                 error: 'Missing user id. For now pass header "x-user-id" (or body user_id)',
             });
-        }
+        }*/
 
         if (!action_type_key) {
             return res.status(400).json({error: "Missing action_type_key"});
@@ -85,7 +86,7 @@ export async function createActionLog(req, res, next) {
         const {data: recentLogs, error: rateErr} = await supabaseUser
             .from("action_logs")
             .select("log_id")
-            .eq("user_id", demoUserId)
+            .eq("user_id", userId)
             .gte("created_at", since);
 
         if (rateErr) return next(rateErr);
@@ -100,7 +101,7 @@ export async function createActionLog(req, res, next) {
         const {data: todayLogs, error: todayErr} = await supabaseUser
             .from("action_logs")
             .select("log_id")
-            .eq("user_id", demoUserId)
+            .eq("user_id", userId)
             .eq("action_type_id", actionType.action_type_id)
             .eq("action_date", today);
 
@@ -122,7 +123,7 @@ export async function createActionLog(req, res, next) {
         // INSERT LOG INTO DATABASE
 
         const insertRow = {
-            user_id: demoUserId,
+            user_id: userId,
             action_type_id: actionType.action_type_id,
             quantity: Number(quantity),
             action_date: today,
@@ -139,10 +140,10 @@ export async function createActionLog(req, res, next) {
 
         if (insErr) return next(insErr);
 
-        await updateStreak(demoUserId);
-        await awardFirstLogOfDay(demoUserId, inserted.log_id);
-        await awardStreakMilestone(demoUserId, newStreak);
-        await checkAndAwardBadges(demoUserId);
+        const newStreak = await updateStreak(userId);
+        await awardFirstLogOfDay(userId, inserted.log_id);
+        await awardStreakMilestone(userId, newStreak);
+        await checkAndAwardBadges(userId);
 
         return res.status(201).json({
             log: inserted,
@@ -161,19 +162,19 @@ export async function createActionLog(req, res, next) {
 
 export async function listActionLogs(req, res, next) {
     try {
-        const demoUserId = normalizeUserId(req.header("x-user-id") || req.query.user_id);
-        if (!demoUserId) {
-            return res.status(400).json({
-                error: 'Missing user id. For now pass header "x-user-id" (or query user_id)',
-            });
-        }
+        const userId = req.user.id;
+        // if (!userId) {
+        //     return res.status(400).json({
+        //         error: 'Missing user id. For now pass header "x-user-id" (or query user_id)',
+        //     });
+        // }
 
         const { start, end } = req.query;
 
         let query = supabaseUser
             .from("action_logs")
             .select("log_id, user_id, action_type_id, quantity, action_date, calculated_co2e, score")
-            .eq("user_id", demoUserId)
+            .eq("user_id", userId)
             .order("action_date", { ascending: true });
 
         if (start) query = query.gte("action_date", start);

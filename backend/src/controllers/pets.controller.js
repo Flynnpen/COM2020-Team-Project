@@ -2,17 +2,17 @@ import {supabaseAdmin, supabaseUser } from "../lib/supabaseClient.js";
 import { checkAndAwardBadges } from "../services/badges.service.js";
 import { deductReviveCost, COIN_REWARDS } from "../services/coins.service.js";
 
-const DEMO_USER_ID = 
-    process.env.DEMO_USER_ID || "c1aae9c3-5157-4a26-a7b3-28d8905cfef0";
+// const DEMO_USER_ID = 
+//     process.env.DEMO_USER_ID || "c1aae9c3-5157-4a26-a7b3-28d8905cfef0";
 
-function normalizeUserId(raw) {
-    if (!raw) return null;
-    const uuidV4ish =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (uuidV4ish.test(raw)) return raw;
-    if (raw === "demo-flynn" || raw === "demo") return DEMO_USER_ID;
-    return raw;
-}
+// function normalizeUserId(raw) {
+//     if (!raw) return null;
+//     const uuidV4ish =
+//         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+//     if (uuidV4ish.test(raw)) return raw;
+//     if (raw === "demo-flynn" || raw === "demo") return DEMO_USER_ID;
+//     return raw;
+// }
 
 async function getCatalogPet({ petCatalogId, petType }) {
     let query = supabaseUser
@@ -71,10 +71,10 @@ export async function listPetCatalog(req, res, next) {
 
 export async function createPet(req, res, next) {
     try {
-        const userId = normalizeUserId(req.header("x-user-id"));
-        if (!userId) {
-            return res.status(400).json({error: 'Missing user id. Pass header "x-user-id"'});
-        }
+        const userId = req.user.id;
+        // if (!userId) {
+        //     return res.status(400).json({error: 'Missing user id. Pass header "x-user-id"'});
+        // }
 
         const petType = (req.body?.pet_type || "").trim() || null;
         if (!petType) {
@@ -112,10 +112,10 @@ export async function createPet(req, res, next) {
 
 export async function getMyPet(req, res, next) {
     try {
-        const userId = normalizeUserId(req.header("x-user-id"));
-        if (!userId) {
-            return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
-        }
+        const userId = req.user.id;
+        // if (!userId) {
+        //     return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
+        // }
 
         const {data: pet, error} = await supabaseUser
             .from("pets")
@@ -134,10 +134,10 @@ export async function getMyPet(req, res, next) {
 
 export async function updateNickname(req, res, next) {
     try {
-        const userId = normalizeUserId(req.header("x-user-id"));
-        if (!userId) {
-            return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
-        }
+        const userId = req.user.id;
+        // if (!userId) {
+        //     return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
+        // }
 
         const nickname = (req.body?.nickname || "").trim();
         if (!nickname) {
@@ -165,10 +165,10 @@ export async function updateNickname(req, res, next) {
 
 export async function revivePet(req, res, next) {
     try {
-        const userId = normalizeUserId(req.header("x-user-id"));
-        if (!userId) {
-            return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
-        }
+        const userId = req.user.id;
+        // if (!userId) {
+        //     return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
+        // }
 
         const {data: pet, petErr} = await supabaseUser
             .from("pets")
@@ -224,10 +224,10 @@ export async function revivePet(req, res, next) {
 
 export async function updatePetStats(req, res, next) {
     try {
-        const userId = normalizeUserId(req.header("x-user-id"));
-        if (!userId) {
-            return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
-        }
+        const userId = req.user.id;
+        // if (!userId) {
+        //     return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
+        // }
 
         const allowed = ["health", "happiness", "energy", "xp", "level", "streak", "status", "last_active_date", "last_fed_at"];
         const updates = {};

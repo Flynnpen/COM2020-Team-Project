@@ -110,10 +110,10 @@ export async function createChallenge(req, res, next) {
     try {
         if (!requireModerator(req, res)) return;
 
-        const moderatorId = req.header("x-user-id");
-        if (!moderatorId) {
-            return res.status(400).json({error: 'Missing moderator id. Pass header "x-user-id"'});
-        }
+        const moderatorId = req.user.id;
+        // if (!moderatorId) {
+        //     return res.status(400).json({error: 'Missing moderator id. Pass header "x-user-id"'});
+        // }
 
         const title = (req.body?.title || "").trim();
         if (!title) {

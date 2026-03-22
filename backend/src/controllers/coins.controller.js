@@ -1,6 +1,6 @@
 import { supabaseUser } from "../lib/supabaseClient.js"
 
-const DEMO_USER_ID =
+/* const DEMO_USER_ID =
     process.env.DEMO_USER_ID || "c1aae9c3-5157-4a26-a7b3-28d8905cfef0";
  
 function normalizeUserId(raw) {
@@ -10,14 +10,14 @@ function normalizeUserId(raw) {
     if (uuidV4ish.test(raw)) return raw;
     if (raw === "demo-flynn" || raw === "demo") return DEMO_USER_ID;
     return raw;
-}
+} */
 
 export async function getCoinBalance(req, res, next) {
     try {
-        const userId = normalizeUserId(req.header("x-user-id"));
-        if (!userId) {
-            return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
-        }
+        const userId = req.user.id;
+        // if (!userId) {
+        //     return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
+        // }
 
         const {data: user, error} = await supabaseUser
             .from("users")
@@ -36,10 +36,10 @@ export async function getCoinBalance(req, res, next) {
 
 export async function getCoinHistory(req, res, next) {
     try {
-        const userId = normalizeUserId(req.header("x-user-id"));
-        if (!userId) {
-            return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
-        }
+        const userId = req.user.id;
+        // if (!userId) {
+        //     return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
+        // }
 
         const limit = Math.min(parseInt(req.query?.limit) || 20, 100);
         const offset = parseInt(req.quer?.offset) || 0;

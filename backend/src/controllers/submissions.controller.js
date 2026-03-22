@@ -3,29 +3,29 @@ import { checkAndAwardBadges } from "../services/badges.service.js";
 import { safeParseJson } from "../services/challengeRules.service.js";
 import { calculatePoints } from "../services/scoring.service.js";
 
-const DEMO_USER_ID =
-    process.env.DEMO_USER_ID || "c1aae9c3-5157-4a26-a7b3-28d8905cfef0";
+// const DEMO_USER_ID =
+//     process.env.DEMO_USER_ID || "c1aae9c3-5157-4a26-a7b3-28d8905cfef0";
 
-function normalizeUserId(raw) {
-    if (!raw) return null;
-    const uuidV4ish =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (uuidV4ish.test(raw)) return raw;
-    if (raw === "demo-flynn" || raw === "demo") return DEMO_USER_ID;
-    return raw;
-}
+// function normalizeUserId(raw) {
+//     if (!raw) return null;
+//     const uuidV4ish =
+//         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+//     if (uuidV4ish.test(raw)) return raw;
+//     if (raw === "demo-flynn" || raw === "demo") return DEMO_USER_ID;
+//     return raw;
+// }
 
 export async function createSubmission(req, res, next) {
     try {
         const { challengeId } = req.params;
 
-        const bodyUserId = req.body?.userId;
-        const demoUserId = normalizeUserId(req.header("x-user-id") || bodyUserId);
-        if (!demoUserId) {
-            return res.status(400).json({
-                error: 'Missing user id. For now pass header "x-user-id" (or body user_id).',
-            });
-        }
+        // const bodyUserId = req.body?.userId;
+        const userId = req.user.id;
+        // if (!userId) {
+        //     return res.status(400).json({
+        //         error: 'Missing user id. For now pass header "x-user-id" (or body user_id).',
+        //     });
+        // }
 
         const groupId = req.body?.group_id ?? null;
 
@@ -120,7 +120,7 @@ export async function createSubmission(req, res, next) {
         const {data: recent, error: recentErr} = await supabaseUser
             .from("submissions")
             .select("submission_id")
-            .eq("user_id", demoUserId)
+            .eq("user_id", userId)
             .gte("created_at", since);
 
         if (recentErr) return next(recentErr);
@@ -146,7 +146,7 @@ export async function createSubmission(req, res, next) {
         const {data: dupCheck, error: dupErr} = await supabaseUser
             .from("submissions")
             .select("submission_id, status")
-            .eq("user_id", demoUserId)
+            .eq("user_id", userId)
             .eq("challenge_id", challengeId)
             .in("status", ["approved", "pending_review"])
             .limit(1);
@@ -164,7 +164,7 @@ export async function createSubmission(req, res, next) {
         const {data: history, error: histErr} = await supabaseUser
             .from("submissions")
             .select("points")
-            .eq("user_id", demoUserId)
+            .eq("user_id", userId)
             .eq("status", "approved");
 
         if (histErr) return next(histErr);
@@ -185,7 +185,7 @@ export async function createSubmission(req, res, next) {
 
         const insertRow = {
             challenge_id: challenge.challenge_id,
-            user_id: demoUserId,
+            user_id: userId,
             group_id: groupId,
             points,
             status,
@@ -215,7 +215,7 @@ export async function createSubmission(req, res, next) {
             if (flagErr) return next(flagErr);
         }
 
-        if (status === "approved") await checkAndAwardBadges(demoUserId);
+        if (status === "approved") await checkAndAwardBadges(userId);
 
         return res.status(201).json({
             submission: inserted,

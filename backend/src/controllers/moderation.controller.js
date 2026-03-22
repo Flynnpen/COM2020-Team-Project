@@ -30,13 +30,13 @@ export async function decideSubmission(req, res, next) {
         if (!requireModerator(req, res)) return;
 
         const {submissionId} = req.params;
-        const moderatorId = req.header("x-user-id");
+        const moderatorId = req.user.id;
         const decision = req.body?.decision;
         const reason = req.body?.reason ?? null;
 
-        if (!moderatorId) {
-            return res.status(400).json({error: 'Missing moderator id (user header "x-user-id")'});
-        }
+        // if (!moderatorId) {
+        //     return res.status(400).json({error: 'Missing moderator id (user header "x-user-id")'});
+        // }
 
         if (!decision || !["approve", "reject"].includes(decision)) {
             return res.status(400).json({error: 'decision must be "approve" or "reject"'});
