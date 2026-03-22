@@ -1,6 +1,7 @@
 import { supabaseAdmin, supabaseUser } from '../lib/supabaseClient.js';
 import { checkAndAwardBadges } from '../services/badges.service.js';
 import { calculateCarbonFromFactor } from '../services/carbon.service.js';
+import { awardFirstLogOfDay, awardStreakMilestone } from '../services/coins.service.js';
 
 const DEMO_USER_ID =
     process.env.DEMO_USER_ID || "c1aae9c3-5157-4a26-a7b3-28d8905cfef0";
@@ -139,6 +140,8 @@ export async function createActionLog(req, res, next) {
         if (insErr) return next(insErr);
 
         await updateStreak(demoUserId);
+        await awardFirstLogOfDay(demoUserId, inserted.log_id);
+        await awardStreakMilestone(demoUserId, newStreak);
         await checkAndAwardBadges(demoUserId);
 
         return res.status(201).json({
@@ -213,4 +216,6 @@ async function updateStreak(userId) {
             last_active_date: today,
         })
         .eq("pet_id", pet.pet_id);
+    
+        return newStreak;
 }

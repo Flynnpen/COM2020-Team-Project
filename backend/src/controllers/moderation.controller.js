@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "../lib/supabaseClient.js";
 import { checkAndAwardBadges } from "../services/badges.service.js";
+import { awardSubmissionApproved } from "../services/coins.service.js";
 import { requireModerator } from "../services/requireModerator.service.js";
 
 export async function getModerationQueue(req, res, next) {
@@ -89,7 +90,10 @@ export async function decideSubmission(req, res, next) {
 
         if (updErr) return next(updErr);
 
-        if (newStatus === "approved") await checkAndAwardBadges(submission.user_id);
+        if (newStatus === "approved") {
+            await awardSubmissionApproved(submission.user_id, submissionId);
+            await checkAndAwardBadges(submission.user_id);
+        } 
 
         res.json({submission: updated, moderationDecision: decisionRow});
     } catch (err) {

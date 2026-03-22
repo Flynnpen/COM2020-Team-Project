@@ -1,4 +1,5 @@
 import {supabaseAdmin, supabaseUser } from "../lib/supabaseClient.js";
+import { deductItemPurchase } from "../services/coins.service.js";
 
 const DEMO_USER_ID = 
     process.env.DEMO_USER_ID || "c1aae9c3-5157-4a26-a7b3-28d8905cfef0";
@@ -58,20 +59,6 @@ export async function buyItem(req, res, next) {
         if (!item) return res.status(404).json({error: "Item not found"});
         if (!item.is_active) return res.status(410).json({error: "Item is no longer available"});
 
-        const {data: user, error: userErr} = await supabaseUser
-            .from("users")
-            .select("coins")
-            .eq("user_id", userId)
-            .single();
-
-        if (userErr) return next(userErr);
-
-        if (user.coins < item.coin_cost) {
-            return res.status(402).json({
-                error: `Not enough coins. ${item.name} costs ${item.coin_cost} coins. You have ${user.coins}.`
-            });
-        }
-
         const {data: pet, error: petErr} = await supabaseUser
             .from("pets")
             .select("pet_id")
@@ -79,24 +66,20 @@ export async function buyItem(req, res, next) {
             .maybeSingle();
 
         if (petErr) return next(petErr);
-        if (!pet) return res.status(404).json ({error: "User has no pet. Create a pet first."});
+        if (!pet) return res.status(404).json({error: "User has no pet. Create a pet first."});
 
-        const newBalance = user.coins - item.coin_cost;
-
-        const {error: coinErr} = await supabaseAdmin
-            .from("users")
-            .update({coins: newBalance})
-            .eq("user_id", userId);
-
-        if (coinErr) return next(coinErr);
-
-        await supabaseAdmin.from("coin_transactions").insert({
-            user_id: userId,
-            amount: -item.coin_cost,
-            balance_after: newBalance,
-            reason: "item_purchase",
-            reference_id: item.item_id,
-        });
+        let coinResult;
+        try {
+            coinResult = await deductItemPurchase(userId, item.item_id, item.coin_cost);
+        } catch (err) {
+            if (err.status === 402) {
+                return res.status(402).json({
+                    error: `Not enough coins. ${item.name} costs ${item.coin_cost} coins`,
+                    ...err.details,
+                });
+            }
+            return next(err);
+        }
 
         const {data: existingEntry} = await supabaseUser
             .from("pet_items")
@@ -137,7 +120,7 @@ export async function buyItem(req, res, next) {
             message: `${item.name} purchased successfully`,
             inventory_entry: inventoryEntry,
             coins_spent: item.coin_cost,
-            new_coin_balance: newBalance,
+            new_coin_balance: coinResult.new_balance,
         });
     } catch (err) {
         next(err);

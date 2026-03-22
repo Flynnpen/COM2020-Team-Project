@@ -1,5 +1,6 @@
 import {supabaseAdmin, supabaseUser } from "../lib/supabaseClient.js";
 import { checkAndAwardBadges } from "../services/badges.service.js";
+import { deductReviveCost, COIN_REWARDS } from "../services/coins.service.js";
 
 const DEMO_USER_ID = 
     process.env.DEMO_USER_ID || "c1aae9c3-5157-4a26-a7b3-28d8905cfef0";
@@ -12,8 +13,6 @@ function normalizeUserId(raw) {
     if (raw === "demo-flynn" || raw === "demo") return DEMO_USER_ID;
     return raw;
 }
-
-const REVIVE_COST = 50; // Need to discuss
 
 async function getCatalogPet({ petCatalogId, petType }) {
     let query = supabaseUser
@@ -184,36 +183,18 @@ export async function revivePet(req, res, next) {
                 return res.status(400).json({error: "Pet is already alive"});
             }
 
-            const {data: user, error: userErr} = await supabaseUser
-                .from("users")
-                .select("coins")
-                .eq("user_id", userId)
-                .single();
-
-            if (userErr) return next(userErr);
-
-            if (user.coins < REVIVE_COST) {
-                return res.status(402).json({
-                    error: `Not enough coins. Revive costs ${REVIVE_COST} coins. You have ${user.coins}`,
-                });
+            let coinResult;
+            try {
+                coinResult = await deductReviveCost(userId, pet.pet_id);
+            } catch (err) {
+                if (err.status === 402) {
+                    return res.status(402).json({
+                        error: `Not enough coins. Revive costs ${Math.abs(COIN_REWARDS.revive_cost)} coins.`,
+                        ...err.details,
+                    });
+                }
+                return next(err);
             }
-
-            const newBalance = user.coins - REVIVE_COST;
-
-            const {error: coinErr} = await supabaseAdmin
-                .from("users")
-                .update({coins: newBalance})
-                .eq("user_id", userId);
-
-            if (coinErr) return next(coinErr);
-
-            await supabaseAdmin.from("coin_transactions").insert({
-                user_id: userId,
-                amount: -REVIVE_COST,
-                balance_after: newBalance,
-                reason: "revive_cost",
-                reference_id: pet.pet_id,
-            });
 
             const {data: updatedPet, error: reviveErr} = await supabaseAdmin
                 .from("pets")
@@ -233,8 +214,8 @@ export async function revivePet(req, res, next) {
 
             return res.status(200).json({
                 pet: updatedPet,
-                coins_spent: REVIVE_COST,
-                new_coin_balance: newBalance,
+                coins_spent: Math.abs(COIN_REWARDS.revive_cost),
+                new_coin_balance: coinResult.new_balance,
             });
     } catch (err) {
         next(err);
