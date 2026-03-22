@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
+import { getAllBadges, getEarnedBadges } from "../api/badges";
 import PageShell from "../components/PageShell";
 import { getGroups } from "../api/groups";
 import type { AccessibilitySettings } from "../accessibility/accessibilityMode";
 import { useAuth } from "../auth/AuthProvider";
-import type { Group } from "../api/types";
+import type { Badge, EarnedBadgeEntry, Group } from "../api/types";
 
 type LayoutContext = {
   accessibilitySettings: AccessibilitySettings;
@@ -65,6 +66,8 @@ export default function ProfilePage() {
   const { accessibilitySettings, setAccessibilitySettings } =
     useOutletContext<LayoutContext>();
   const [groups, setGroups] = useState<Group[]>([]);
+  const [earnedBadges, setEarnedBadges] = useState<EarnedBadgeEntry[]>([]);
+  const [allBadges, setAllBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,8 +76,14 @@ export default function ProfilePage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await getGroups();
-        setGroups(res.groups || []);
+        const [groupsRes, earnedRes, allRes] = await Promise.all([
+          getGroups(),
+          getEarnedBadges(),
+          getAllBadges(true),
+        ]);
+        setGroups(groupsRes.groups || []);
+        setEarnedBadges(earnedRes.badges || []);
+        setAllBadges(allRes.badges || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load profile details.");
       } finally {
@@ -96,6 +105,14 @@ export default function ProfilePage() {
     accessibilitySettings.reducedMotion,
     accessibilitySettings.compactLayout,
   ].filter(Boolean).length;
+  const earnedBadgeIds = useMemo(
+    () => new Set(earnedBadges.map((entry) => entry.badges.badge_id)),
+    [earnedBadges]
+  );
+  const lockedBadges = useMemo(
+    () => allBadges.filter((badge) => !earnedBadgeIds.has(badge.badge_id)),
+    [allBadges, earnedBadgeIds]
+  );
 
   return (
     <PageShell
@@ -257,6 +274,113 @@ export default function ProfilePage() {
                       })
                     }
                   />
+                </div>
+              </div>
+            </section>
+
+            <section className="app-card p-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="app-chip">Badges</div>
+                  <h2 className="mt-4 text-2xl font-semibold text-[rgb(var(--app-ink))]">
+                    Achievement cabinet
+                  </h2>
+                  <p className="mt-2 text-sm app-muted">
+                    Track what you’ve already unlocked and what’s still available to earn.
+                  </p>
+                </div>
+                <div className="app-stat min-w-[120px] px-4 py-3 text-center">
+                  <div className="text-xs uppercase tracking-wide app-muted">Earned</div>
+                  <div className="mt-1 text-2xl font-semibold text-[rgb(var(--app-ink))]">
+                    {earnedBadges.length}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_0.95fr]">
+                <div>
+                  <div className="text-xs uppercase tracking-wide app-muted">Unlocked</div>
+                  {earnedBadges.length > 0 ? (
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                      {earnedBadges.map((entry) => (
+                        <div key={entry.user_badge_id} className="app-card-soft p-4">
+                          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-[1.2rem] bg-white">
+                            {entry.badges.image_url ? (
+                              <img
+                                src={entry.badges.image_url}
+                                alt={entry.badges.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-lg font-semibold text-[rgb(var(--app-ink))]">
+                                {entry.badges.name.slice(0, 1).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-3 text-base font-semibold text-[rgb(var(--app-ink))]">
+                            {entry.badges.name}
+                          </div>
+                          <div className="mt-1 text-sm app-muted">
+                            {entry.badges.description || "Achievement unlocked."}
+                          </div>
+                          <div className="mt-3 text-xs app-muted">
+                            Earned {new Date(entry.earned_at).toLocaleDateString("en-GB")}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-[1.5rem] border border-dashed border-[rgb(var(--app-line))] bg-[rgb(var(--app-soft))]/60 p-5">
+                      <div className="text-sm font-semibold text-[rgb(var(--app-ink))]">
+                        No badges unlocked yet
+                      </div>
+                      <div className="mt-2 text-sm app-muted">
+                        Start logging actions, building streaks, and completing approved challenge submissions to unlock your first badge.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-xs uppercase tracking-wide app-muted">Still to earn</div>
+                  {lockedBadges.length > 0 ? (
+                    <div className="mt-3 space-y-3">
+                      {lockedBadges.slice(0, 6).map((badge) => (
+                        <div key={badge.badge_id} className="app-card-soft flex items-center gap-4 p-4 opacity-85">
+                          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[1.1rem] bg-white">
+                            {badge.image_url ? (
+                              <img
+                                src={badge.image_url}
+                                alt={badge.name}
+                                className="h-full w-full object-cover grayscale"
+                              />
+                            ) : (
+                              <span className="text-lg font-semibold text-[rgb(var(--app-ink))]">
+                                {badge.name.slice(0, 1).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="truncate text-base font-semibold text-[rgb(var(--app-ink))]">
+                              {badge.name}
+                            </div>
+                            <div className="mt-1 text-sm app-muted">
+                              {badge.description || "Keep progressing to unlock this badge."}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-[1.5rem] border border-dashed border-[rgb(var(--app-line))] bg-[rgb(var(--app-soft))]/60 p-5">
+                      <div className="text-sm font-semibold text-[rgb(var(--app-ink))]">
+                        You’ve unlocked every active badge
+                      </div>
+                      <div className="mt-2 text-sm app-muted">
+                        There are no remaining active badges in the current catalog.
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </section>
