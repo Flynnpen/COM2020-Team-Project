@@ -375,3 +375,28 @@ export type BuyShopItemResponse = {
   coins_spent: number;
   new_coin_balance: number;
 };
+
+export type Badge = {
+  badge_id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  sdg_number: number | null;
+  trigger_type: string;
+  trigger_value?: number | null;
+  is_active?: boolean;
+};
+
+export type EarnedBadgeEntry = {
+  user_badge_id: string;
+  earned_at: string;
+  badges: Badge;
+};
+
+export type EarnedBadgesResponse = {
+  badges: EarnedBadgeEntry[];
+};
+
+export type AllBadgesResponse = {
+  badges: Badge[];
+};

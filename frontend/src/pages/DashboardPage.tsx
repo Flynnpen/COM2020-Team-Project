@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { apiFetch } from "../api/client";
 import { getCoinBalance } from "../api/coins";
 import { getActionLogs } from "../api/actionLogs";
+import { getEarnedBadges } from "../api/badges";
 import { getChallenges } from "../api/challenges";
 import { getUserLeaderboards } from "../api/leaderboards";
 import { useAuth } from "../auth/AuthProvider";
@@ -11,6 +12,7 @@ import { createPet, getMyPet, getPetCatalog } from "../api/pets";
 import type {
   ActionType,
   Challenge,
+  EarnedBadgeEntry,
   GetActionTypesResponse,
   Pet,
   PetCatalogEntry,
@@ -237,6 +239,7 @@ export default function DashboardPage() {
   const [pet, setPet] = useState<Pet | null>(null);
   const [petCatalog, setPetCatalog] = useState<PetCatalogEntry[]>([]);
   const [coins, setCoins] = useState<number | null>(null);
+  const [earnedBadges, setEarnedBadges] = useState<EarnedBadgeEntry[]>([]);
   const [leaderboardEntries, setLeaderboardEntries] = useState<UserLeaderboardEntry[]>([]);
   const [personalChallenges, setPersonalChallenges] = useState<Challenge[]>([]);
   const [groupChallenges, setGroupChallenges] = useState<Challenge[]>([]);
@@ -273,7 +276,7 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       try {
-        const [typesRes, coinRes, petRes, catalogRes, leaderboardsRes, personalRes, groupRes] =
+        const [typesRes, coinRes, petRes, catalogRes, earnedBadgesRes, leaderboardsRes, personalRes, groupRes] =
           await Promise.all([
           apiFetch<GetActionTypesResponse>("/action-types"),
           getCoinBalance(),
@@ -282,6 +285,7 @@ export default function DashboardPage() {
             throw err;
           }),
           getPetCatalog(),
+          getEarnedBadges(),
           getUserLeaderboards(user.group_id || undefined),
           getChallenges("personal"),
           getChallenges("group"),
@@ -291,6 +295,7 @@ export default function DashboardPage() {
           setCoins(coinRes.coins);
           setPet(petRes?.pet ?? null);
           setPetCatalog(catalogRes.pets || []);
+          setEarnedBadges(earnedBadgesRes.badges || []);
           setLeaderboardEntries(leaderboardsRes.leaderboards || []);
           setPersonalChallenges(personalRes.challenges || []);
           setGroupChallenges(groupRes.challenges || []);
@@ -603,6 +608,63 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+        </section>
+
+        <section className="app-card p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="app-chip">Badges</div>
+              <h2 className="mt-3 app-section-title">Recent achievements</h2>
+              <p className="mt-2 text-sm app-muted">
+                Keep an eye on what you’ve unlocked recently and how your progress is stacking up.
+              </p>
+            </div>
+            <Link to="/app/profile" className="app-button-secondary">
+              Open badge cabinet
+            </Link>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="app-stat">
+              <div className="text-xs uppercase tracking-wide app-muted">Earned total</div>
+              <div className="mt-1 text-2xl font-semibold text-[rgb(var(--app-ink))]">
+                {earnedBadges.length}
+              </div>
+            </div>
+            {earnedBadges.slice(0, 3).map((entry) => (
+              <div key={entry.user_badge_id} className="app-card-soft p-4">
+                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.1rem] bg-white">
+                  {entry.badges.image_url ? (
+                    <img
+                      src={entry.badges.image_url}
+                      alt={entry.badges.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-lg font-semibold text-[rgb(var(--app-ink))]">
+                      {entry.badges.name.slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-3 text-base font-semibold text-[rgb(var(--app-ink))]">
+                  {entry.badges.name}
+                </div>
+                <div className="mt-1 text-xs app-muted">
+                  {new Date(entry.earned_at).toLocaleDateString("en-GB")}
+                </div>
+              </div>
+            ))}
+            {earnedBadges.length === 0 ? (
+              <div className="app-card-soft p-4 sm:col-span-2 xl:col-span-3">
+                <div className="text-sm font-semibold text-[rgb(var(--app-ink))]">
+                  No badges unlocked yet
+                </div>
+                <div className="mt-2 text-sm app-muted">
+                  Your first badge will appear here once you build up enough actions, streaks, or approved submissions.
+                </div>
+              </div>
+            ) : null}
+          </div>
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
