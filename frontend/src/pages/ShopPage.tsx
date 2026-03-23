@@ -6,6 +6,7 @@ import { getCoinBalance } from "../api/coins";
 import { getInventory } from "../api/inventory";
 import { buyShopItem, getShopItems } from "../api/shop";
 import type { InventoryItem, ShopItem } from "../api/types";
+import { resolveGameAssetUrl } from "../utils/gameAssetUrl";
 
 function isMissingPetError(error: unknown) {
   return error instanceof Error && /no pet found|user has no pet/i.test(error.message);
@@ -277,6 +278,15 @@ export default function ShopPage() {
                 <p className="mt-4 text-sm app-muted">
                   {item.description || "Cosmetic accessory for your companion."}
                 </p>
+                {resolveGameAssetUrl(item.image_url) ? (
+                  <div className="mt-4 flex justify-center rounded-[1.25rem] bg-[rgb(var(--app-soft))] p-4">
+                    <img
+                      src={resolveGameAssetUrl(item.image_url) || undefined}
+                      alt={item.name}
+                      className="h-24 w-24 object-contain"
+                    />
+                  </div>
+                ) : null}
                 <div className="mt-4 rounded-[1.25rem] bg-[rgb(var(--app-soft))] p-3 text-xs app-muted">
                   {item.rarity ? `Rarity: ${item.rarity}` : "Standard item"}
                 </div>

@@ -71,7 +71,7 @@ export default function ModerationPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await getModerationQueue(role, { status, limit: 100 });
+        const res = await getModerationQueue({ status, limit: 100 });
         setQueue(res.submissions || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load moderation queue.");
@@ -90,11 +90,18 @@ export default function ModerationPage() {
     setError(null);
     setResult(null);
     try {
-      const res = await decideSubmission(submissionId, decision, role, reason);
-      setQueue((prev) =>
-        prev.map((item) => (item.submission_id === submissionId ? res.submission : item))
-      );
+      const res = await decideSubmission(submissionId, decision, reason);
+      setQueue((prev) => {
+        if (status === "pending_review") {
+          return prev.filter((item) => item.submission_id !== submissionId);
+        }
+
+        return prev.map((item) =>
+          item.submission_id === submissionId ? res.submission : item
+        );
+      });
       setResult(`Submission ${decision === "approve" ? "approved" : "rejected"}.`);
+      setReason("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not submit moderation decision.");
     } finally {

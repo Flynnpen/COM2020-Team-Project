@@ -5,6 +5,7 @@ import { getCoinBalance } from "../api/coins";
 import { equipInventoryItem, getInventory, unequipInventoryItem } from "../api/inventory";
 import { createPet, getMyPet, getPetCatalog, revivePet, updatePetNickname } from "../api/pets";
 import type { InventoryItem, Pet, PetCatalogEntry } from "../api/types";
+import { resolveGameAssetUrl } from "../utils/gameAssetUrl";
 
 function isMissingPetError(error: unknown) {
   return error instanceof Error && /no pet found|user has no pet/i.test(error.message);
@@ -63,6 +64,66 @@ function StatCard({
       <div className="mt-3 h-2 rounded-full bg-[rgb(var(--app-soft))]">
         <div className={`h-2 rounded-full ${tint}`} style={{ width: `${clamp(value)}%` }} />
       </div>
+    </div>
+  );
+}
+
+const ACCESSORY_LAYER_ORDER: Record<string, number> = {
+  background: 0,
+  body: 5,
+  clothing: 10,
+  shoes: 20,
+  accessory: 30,
+  glasses: 40,
+  hair: 50,
+  hat: 60,
+};
+
+function getAccessoryLayerOrder(category: string | null | undefined) {
+  if (!category) return 25;
+  return ACCESSORY_LAYER_ORDER[category.toLowerCase()] ?? 25;
+}
+
+function PetAvatar({
+  pet,
+  equippedItems,
+}: {
+  pet: Pet;
+  equippedItems: InventoryItem[];
+}) {
+  const petImageUrl = resolveGameAssetUrl(pet.image_url);
+  const layeredItems = [...equippedItems]
+    .filter((entry) => Boolean(resolveGameAssetUrl(entry.items.image_url)))
+    .sort(
+      (a, b) =>
+        getAccessoryLayerOrder(a.items.category) -
+        getAccessoryLayerOrder(b.items.category)
+    );
+
+  return (
+    <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[1.6rem] bg-white shadow-sm">
+      {petImageUrl ? (
+        <img
+          src={petImageUrl}
+          alt={pet.nickname}
+          className="absolute inset-0 h-full w-full object-contain"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-2xl font-semibold text-[rgb(var(--app-ink))]">
+          {pet.nickname.slice(0, 2).toUpperCase()}
+        </div>
+      )}
+
+      {petImageUrl &&
+        layeredItems.map((entry) => (
+          <img
+            key={entry.pet_item_id}
+            src={resolveGameAssetUrl(entry.items.image_url) || undefined}
+            alt={entry.items.name}
+            className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+            style={{ zIndex: getAccessoryLayerOrder(entry.items.category) + 1 }}
+          />
+        ))}
     </div>
   );
 }
@@ -361,17 +422,7 @@ export default function PetsPage() {
                 <div className="rounded-[1.6rem] bg-white/80 p-5">
                   <div className="app-chip">Companion profile</div>
                   <div className="mt-4 flex items-center gap-4">
-                    {pet.image_url ? (
-                      <img
-                        src={pet.image_url}
-                        alt={pet.nickname}
-                        className="h-24 w-24 rounded-[1.4rem] object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-24 w-24 items-center justify-center rounded-[1.4rem] bg-white text-2xl font-semibold text-[rgb(var(--app-ink))]">
-                        {pet.nickname.slice(0, 2).toUpperCase()}
-                      </div>
-                    )}
+                    <PetAvatar pet={pet} equippedItems={equippedItems} />
                     <div className="min-w-0">
                       <div className="truncate text-3xl font-semibold text-[rgb(var(--app-ink))]">
                         {pet.nickname}
