@@ -3,15 +3,20 @@ import cors from 'cors';
 
 const app = express();
 
+function normalizeOrigin(value) {
+    return value.trim().replace(/\/+$/, "");
+}
+
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173/")
     .split(",")
-    .map(o => o.trim());
+    .map(normalizeOrigin)
+    .filter(Boolean);
 
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
 
-        if (allowedOrigins.includes(origin)) {
+        if (allowedOrigins.includes(normalizeOrigin(origin))) {
             return callback(null, true);
         }
 

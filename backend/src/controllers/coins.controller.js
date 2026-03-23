@@ -1,4 +1,4 @@
-import { supabaseUser } from "../lib/supabaseClient.js"
+import { supabaseAdmin } from "../lib/supabaseClient.js"
 
 /* const DEMO_USER_ID =
     process.env.DEMO_USER_ID || "c1aae9c3-5157-4a26-a7b3-28d8905cfef0";
@@ -19,7 +19,7 @@ export async function getCoinBalance(req, res, next) {
         //     return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
         // }
 
-        const {data: user, error} = await supabaseUser
+        const {data: user, error} = await supabaseAdmin
             .from("users")
             .select("user_id, coins")
             .eq("user_id", userId)
@@ -42,9 +42,9 @@ export async function getCoinHistory(req, res, next) {
         // }
 
         const limit = Math.min(parseInt(req.query?.limit) || 20, 100);
-        const offset = parseInt(req.quer?.offset) || 0;
+        const offset = parseInt(req.query?.offset) || 0;
 
-        const {data: transactions, error, count} = await supabaseUser
+        const {data: transactions, error, count} = await supabaseAdmin
             .from("coin_transactions")
             .select("transaction_id, amount, balance_after, reason, reference_id, created_at", {
                 count: "exact",

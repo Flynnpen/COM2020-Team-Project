@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import PageShell from "../components/PageShell";
-import { loginDemo } from "../api/auth";
+import { login } from "../api/auth";
 import { useAuth } from "../auth/AuthProvider";
 
 export default function LoginPage() {
-  const { isAuthenticated, setUser } = useAuth();
+  const { isAuthenticated, setAuthState } = useAuth();
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,15 +20,26 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
 
-    if (!username.trim() || !password) {
-      setError("Please enter your username and password.");
+    if (!email.trim() || !password) {
+      setError("Please enter your email and password.");
       return;
     }
 
     setSubmitting(true);
     try {
-      const res = await loginDemo(username.trim(), password);
-      setUser(res.user);
+      const res = await login({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      if (!res.session?.access_token) {
+        throw new Error("Login succeeded but no session token was returned.");
+      }
+
+      setAuthState({
+        user: res.user,
+        session: res.session,
+      });
       navigate("/app/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed.");
@@ -46,17 +57,18 @@ export default function LoginPage() {
         >
           <form className="space-y-3" onSubmit={onSubmit}>
             <div className="space-y-1.5">
-              <label htmlFor="login-username" className="text-sm font-medium text-[rgb(var(--app-ink))]">
-                Username
+              <label htmlFor="login-email" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Email
               </label>
               <input
-                id="login-username"
+                id="login-email"
                 className="app-input"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
-                aria-invalid={Boolean(error && !username.trim())}
+                placeholder="Email address"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                aria-invalid={Boolean(error && !email.trim())}
               />
             </div>
             <div className="space-y-1.5">

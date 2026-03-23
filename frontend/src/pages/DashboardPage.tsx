@@ -276,8 +276,16 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       try {
-        const [typesRes, coinRes, petRes, catalogRes, earnedBadgesRes, leaderboardsRes, personalRes, groupRes] =
-          await Promise.all([
+        const [
+          typesResult,
+          coinResult,
+          petResult,
+          catalogResult,
+          earnedBadgesResult,
+          leaderboardsResult,
+          personalResult,
+          groupResult,
+        ] = await Promise.allSettled([
           apiFetch<GetActionTypesResponse>("/action-types"),
           getCoinBalance(),
           getMyPet().catch((err) => {
@@ -290,15 +298,33 @@ export default function DashboardPage() {
           getChallenges("personal"),
           getChallenges("group"),
         ]);
+
+        if (typesResult.status === "rejected") {
+          throw typesResult.reason;
+        }
+
+        if (catalogResult.status === "rejected") {
+          throw catalogResult.reason;
+        }
+
+        const typesRes = typesResult.value;
+        const catalogRes = catalogResult.value;
+        const coinRes = coinResult.status === "fulfilled" ? coinResult.value : null;
+        const petRes = petResult.status === "fulfilled" ? petResult.value : null;
+        const earnedBadgesRes = earnedBadgesResult.status === "fulfilled" ? earnedBadgesResult.value : null;
+        const leaderboardsRes = leaderboardsResult.status === "fulfilled" ? leaderboardsResult.value : null;
+        const personalRes = personalResult.status === "fulfilled" ? personalResult.value : null;
+        const groupRes = groupResult.status === "fulfilled" ? groupResult.value : null;
+
         if (!cancelled) {
           setActionTypes(typesRes.actionTypes);
-          setCoins(coinRes.coins);
+          setCoins(coinRes?.coins ?? null);
           setPet(petRes?.pet ?? null);
           setPetCatalog(catalogRes.pets || []);
-          setEarnedBadges(earnedBadgesRes.badges || []);
-          setLeaderboardEntries(leaderboardsRes.leaderboards || []);
-          setPersonalChallenges(personalRes.challenges || []);
-          setGroupChallenges(groupRes.challenges || []);
+          setEarnedBadges(earnedBadgesRes?.badges || []);
+          setLeaderboardEntries(leaderboardsRes?.leaderboards || []);
+          setPersonalChallenges(personalRes?.challenges || []);
+          setGroupChallenges(groupRes?.challenges || []);
           setPetSetupType((current) => current || catalogRes.pets?.[0]?.pet_type || "");
           setPetSetupNickname((petRes?.pet?.nickname || user.display_name || user.username || "").trim());
         }

@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import type { AccessibilitySettings } from "../accessibility/accessibilityMode";
+import { logout } from "../api/auth";
 
 type NavItem = {
   label: string;
@@ -112,9 +113,15 @@ export default function Sidebar({
       ]
     : baseNavItems;
 
-  function handleLogout() {
-    clearUser();
-    window.location.href = "/login";
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch {
+      // Clear local auth state even if the server-side sign-out call fails.
+    } finally {
+      clearUser();
+      window.location.href = "/login";
+    }
   }
 
   const accessibilityMode = accessibilitySettings.enabled;

@@ -5,9 +5,10 @@ import { signup } from "../api/auth";
 import { useAuth } from "../auth/AuthProvider";
 
 export default function SignupPage() {
-  const { isAuthenticated, setUser } = useAuth();
+  const { isAuthenticated, setAuthState } = useAuth();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,13 +23,13 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
 
-    if (!username.trim() || !password) {
-      setError("Please enter a username and password.");
+    if (!displayName.trim() || !email.trim() || !username.trim() || !password) {
+      setError("Please enter your display name, email, username, and password.");
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long.");
       return;
     }
 
@@ -40,11 +41,16 @@ export default function SignupPage() {
     setSubmitting(true);
     try {
       const res = await signup({
+        email: email.trim().toLowerCase(),
         username: username.trim(),
-        display_name: displayName.trim() || undefined,
+        display_name: displayName.trim(),
         password,
       });
-      setUser(res.user);
+
+      setAuthState({
+        user: res.user,
+        session: res.session,
+      });
       navigate("/app/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create account.");
@@ -68,10 +74,26 @@ export default function SignupPage() {
               <input
                 id="signup-display-name"
                 className="app-input"
-                placeholder="Display name (optional)"
+                placeholder="Display name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 autoComplete="nickname"
+                aria-invalid={Boolean(error && !displayName.trim())}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="signup-email" className="text-sm font-medium text-[rgb(var(--app-ink))]">
+                Email
+              </label>
+              <input
+                id="signup-email"
+                className="app-input"
+                placeholder="Email address"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                aria-invalid={Boolean(error && !email.trim())}
               />
             </div>
             <div className="space-y-1.5">
@@ -100,7 +122,7 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
-                aria-invalid={Boolean(error && password.length > 0 && password.length < 6)}
+                aria-invalid={Boolean(error && password.length > 0 && password.length < 8)}
               />
             </div>
             <div className="space-y-1.5">

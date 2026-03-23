@@ -83,7 +83,7 @@ export async function createPet(req, res, next) {
 
         const nickname = (req.body?.nickname || "My Pet").trim();
 
-        const {data: existing} = await supabaseUser
+        const {data: existing} = await supabaseAdmin
             .from("pets")
             .select("pet_id")
             .eq("user_id", userId)
@@ -117,7 +117,7 @@ export async function getMyPet(req, res, next) {
         //     return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
         // }
 
-        const {data: pet, error} = await supabaseUser
+        const {data: pet, error} = await supabaseAdmin
             .from("pets")
             .select("*")
             .eq("user_id", userId)
@@ -170,7 +170,7 @@ export async function revivePet(req, res, next) {
         //     return res.status(400).json({ error: 'Missing user id. Pass header "x-user-id"' });
         // }
 
-        const {data: pet, petErr} = await supabaseUser
+        const {data: pet, petErr} = await supabaseAdmin
             .from("pets")
             .select("*")
             .eq("user_id", userId)

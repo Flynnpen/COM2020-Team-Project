@@ -3,7 +3,19 @@ export type AuthUser = {
   username: string;
   display_name: string | null;
   role: string | null;
+  email?: string | null;
   group_id: string | null;
+};
+
+export type AuthTokens = {
+  access_token: string;
+  refresh_token: string;
+  expires_at: number | null;
+};
+
+export type AuthState = {
+  user: AuthUser;
+  session: AuthTokens | null;
 };
 
 const STORAGE_KEY = "auth_user";
@@ -18,25 +30,59 @@ function emitAuthChange() {
   window.dispatchEvent(new CustomEvent(AUTH_EVENT));
 }
 
-export function setAuthUser(user: AuthUser) {
-  if (!canUseBrowserStorage()) return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-  emitAuthChange();
-}
-
-export function getAuthUser(): AuthUser | null {
-  if (!canUseBrowserStorage()) return null;
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
+function parseStoredAuthState(raw: string): AuthState | null {
   try {
-    return JSON.parse(raw) as AuthUser;
+    const parsed = JSON.parse(raw) as AuthState | AuthUser;
+    if (!parsed || typeof parsed !== "object") return null;
+
+    if ("user" in parsed) {
+      return parsed.user ? (parsed as AuthState) : null;
+    }
+
+    return {
+      user: parsed as AuthUser,
+      session: null,
+    };
   } catch {
     return null;
   }
 }
 
+export function setAuthState(state: AuthState) {
+  if (!canUseBrowserStorage()) return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  emitAuthChange();
+}
+
+export function setAuthUser(user: AuthUser) {
+  const current = getAuthState();
+  setAuthState({
+    user,
+    session: current?.session ?? null,
+  });
+}
+
+export function getAuthState(): AuthState | null {
+  if (!canUseBrowserStorage()) return null;
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+  return parseStoredAuthState(raw);
+}
+
+export function getAuthUser(): AuthUser | null {
+  return getAuthState()?.user ?? null;
+}
+
 export function getAuthUserId(): string | null {
   return getAuthUser()?.user_id || null;
+}
+
+export function getAccessToken(): string | null {
+  return getAuthState()?.session?.access_token ?? null;
+}
+
+export function getRefreshToken(): string | null {
+  return getAuthState()?.session?.refresh_token ?? null;
 }
 
 export function clearAuthUser() {

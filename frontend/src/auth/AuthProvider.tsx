@@ -7,16 +7,20 @@ import {
   type ReactNode,
 } from "react";
 import {
+  getAuthState,
   clearAuthUser,
-  getAuthUser,
   setAuthUser,
+  setAuthState,
   subscribeAuthUser,
+  type AuthState,
   type AuthUser,
 } from "./authSession";
 
 type AuthContextValue = {
+  authState: AuthState | null;
   user: AuthUser | null;
   isAuthenticated: boolean;
+  setAuthState: (state: AuthState) => void;
   setUser: (user: AuthUser) => void;
   clearUser: () => void;
 };
@@ -24,24 +28,26 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUserState] = useState<AuthUser | null>(null);
+  const [authState, setAuthStateValue] = useState<AuthState | null>(null);
 
   useEffect(() => {
-    setUserState(getAuthUser());
+    setAuthStateValue(getAuthState());
 
     return subscribeAuthUser(() => {
-      setUserState(getAuthUser());
+      setAuthStateValue(getAuthState());
     });
   }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      user,
-      isAuthenticated: Boolean(user),
+      authState,
+      user: authState?.user ?? null,
+      isAuthenticated: Boolean(authState?.user && authState?.session?.access_token),
+      setAuthState,
       setUser: setAuthUser,
       clearUser: clearAuthUser,
     }),
-    [user]
+    [authState]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

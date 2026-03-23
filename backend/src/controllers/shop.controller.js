@@ -17,7 +17,7 @@ export async function listShopItems(req, res, next) {
     try {
         const category = req.query?.category || null;
 
-        let query = supabaseUser
+        let query = supabaseAdmin
             .from("items")
             .select("item_id, name, description, image_url, category, coin_cost, rarity")
             .eq("is_active", true)
@@ -49,7 +49,7 @@ export async function buyItem(req, res, next) {
             return res.status(400).json({error: "itemId param is required"});
         }
 
-        const {data: item, error: itemErr} = await supabaseUser
+        const {data: item, error: itemErr} = await supabaseAdmin
             .from("items")
             .select("item_id, name, coin_cost, is_active")
             .eq("item_id", itemId)
@@ -59,7 +59,7 @@ export async function buyItem(req, res, next) {
         if (!item) return res.status(404).json({error: "Item not found"});
         if (!item.is_active) return res.status(410).json({error: "Item is no longer available"});
 
-        const {data: pet, error: petErr} = await supabaseUser
+        const {data: pet, error: petErr} = await supabaseAdmin
             .from("pets")
             .select("pet_id")
             .eq("user_id", userId)
@@ -81,7 +81,7 @@ export async function buyItem(req, res, next) {
             return next(err);
         }
 
-        const {data: existingEntry} = await supabaseUser
+        const {data: existingEntry} = await supabaseAdmin
             .from("pet_items")
             .select("pet_item_id, quantity")
             .eq("pet_id", pet.pet_id)

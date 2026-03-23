@@ -19,7 +19,7 @@ export async function getInventory(req, res, next) {
         //     return res.status(400).json({error: 'Missing user id. Pass header "x-user-id"'});
         // }
 
-        const {data: pet, error: petErr} = await supabaseUser
+        const {data: pet, error: petErr} = await supabaseAdmin
             .from("pets")
             .select("pet_id")
             .eq("user_id", userId)
@@ -28,7 +28,7 @@ export async function getInventory(req, res, next) {
         if (petErr) return next(petErr);
         if (!pet) return res.status(404).json({error: "No pet found for this user"});
 
-        const {data: inventory, error} = await supabaseUser
+        const {data: inventory, error} = await supabaseAdmin
             .from("pet_items")
             .select(`
                 pet_item_id,
@@ -63,7 +63,7 @@ export async function equipItem(req, res, next) {
         // }
 
         const { itemId } = req.params;
-        const {data: pet, error: petErr} = await supabaseUser
+        const {data: pet, error: petErr} = await supabaseAdmin
             .from("pets")
             .select("pet_id")
             .eq("user_id", userId)
@@ -72,7 +72,7 @@ export async function equipItem(req, res, next) {
         if (petErr) return next(petErr);
         if (!pet) return res.status(404).json({error: "No pet found for this user"});
 
-        const {data: entry, error: entryErr} = await supabaseUser
+        const {data: entry, error: entryErr} = await supabaseAdmin
             .from("pet_items")
             .select("pet_item_id, equipped, items(item_id, category)")
             .eq("pet_id", pet.pet_id)
@@ -85,7 +85,7 @@ export async function equipItem(req, res, next) {
 
         const category = entry.items?.category;
         if (category) {
-            const {data: categoryItems, error: catErr} = await supabaseUser
+            const {data: categoryItems, error: catErr} = await supabaseAdmin
                 .from("items")
                 .select("item_id")
                 .eq("category", category);
@@ -128,7 +128,7 @@ export async function unequipItem(req, res, next) {
 
         const {itemId} = req.params;
 
-        const {data: pet, error: petErr} = await supabaseUser
+        const {data: pet, error: petErr} = await supabaseAdmin
             .from("pets")
             .select("pet_id")
             .eq("user_id", userId)
@@ -137,7 +137,7 @@ export async function unequipItem(req, res, next) {
         if (petErr) return next(petErr);
         if (!pet) return res.status(404).json({error: "No pet found for this user"});
 
-        const {data: entry, error: entryErr} = await supabaseUser
+        const {data: entry, error: entryErr} = await supabaseAdmin
             .from("pet_items")
             .select("pet_item_id, equipped")
             .eq("pet_id", pet.pet_id)

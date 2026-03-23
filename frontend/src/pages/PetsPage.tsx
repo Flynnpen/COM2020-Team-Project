@@ -91,7 +91,7 @@ export default function PetsPage() {
       setError(null);
 
       try {
-        const [{ coins: coinBalance }, petRes, catalogRes] = await Promise.all([
+        const [coinResult, petResult, catalogResult] = await Promise.allSettled([
           getCoinBalance(),
           getMyPet().catch((err) => {
             if (isMissingPetError(err)) return null;
@@ -99,6 +99,14 @@ export default function PetsPage() {
           }),
           getPetCatalog(),
         ]);
+
+        if (catalogResult.status === "rejected") {
+          throw catalogResult.reason;
+        }
+
+        const coinBalance = coinResult.status === "fulfilled" ? coinResult.value.coins : null;
+        const petRes = petResult.status === "fulfilled" ? petResult.value : null;
+        const catalogRes = catalogResult.value;
 
         if (cancelled) return;
 

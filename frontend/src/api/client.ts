@@ -1,4 +1,4 @@
-import { getAuthUserId } from "../auth/authSession";
+import { getAccessToken } from "../auth/authSession";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -12,13 +12,13 @@ export async function apiFetch<T>(
   options: ApiFetchOptions = {}
 ): Promise<T> {
   const { skipAuth = false, headers, ...rest } = options;
-  const userId = skipAuth ? null : getAuthUserId();
+  const accessToken = skipAuth ? null : getAccessToken();
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     headers: {
       "Content-Type": "application/json",
-      ...(userId ? { "x-user-id": userId } : {}),
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(headers || {}),
     },
   });
