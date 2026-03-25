@@ -85,6 +85,11 @@ function getAccessoryLayerOrder(category: string | null | undefined) {
   return ACCESSORY_LAYER_ORDER[category.toLowerCase()] ?? 25;
 }
 
+function getDefaultPetNickname(displayName: string | null | undefined, username: string | null | undefined) {
+  const baseName = (displayName || username || "Student").trim();
+  return `${baseName}'s Pet`;
+}
+
 function PetAvatar({
   pet,
   equippedItems,
@@ -186,6 +191,9 @@ export default function PetsPage() {
         setCoins(coinBalance);
         setPetCatalog(catalogRes.pets || []);
         setAdoptType((current) => current || catalogRes.pets?.[0]?.pet_type || "");
+        setAdoptNickname((current) =>
+          current || getDefaultPetNickname(user?.display_name, user?.username)
+        );
 
         if (!petRes) {
           setPet(null);

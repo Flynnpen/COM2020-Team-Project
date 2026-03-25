@@ -69,6 +69,11 @@ function formatLeaderboardPoints(value: number) {
   return Math.round(value);
 }
 
+function getDefaultPetNickname(displayName: string | null | undefined, username: string | null | undefined) {
+  const baseName = (displayName || username || "Student").trim();
+  return `${baseName}'s Pet`;
+}
+
 // first-time setup modal - intentionally blocking, no way to dismiss without picking a pet
 function PetSetupModal({
   nickname,
@@ -136,13 +141,13 @@ function PetSetupModal({
     >
       <div
         ref={dialogRef}
-        className="w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/60 bg-[linear-gradient(145deg,rgba(244,252,246,0.98),rgba(255,248,234,0.98))] shadow-[0_30px_90px_rgba(15,23,42,0.24)]"
+        className="flex max-h-[min(92vh,860px)] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-[linear-gradient(145deg,rgba(244,252,246,0.98),rgba(255,248,234,0.98))] shadow-[0_30px_90px_rgba(15,23,42,0.24)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="pet-setup-title"
         aria-describedby="pet-setup-description"
       >
-        <div className="grid gap-0 lg:grid-cols-[0.84fr_1.16fr]">
+        <div className="grid min-h-0 flex-1 gap-0 lg:grid-cols-[0.84fr_1.16fr]">
           <div className="bg-[linear-gradient(160deg,rgba(16,185,129,0.18),rgba(250,204,21,0.15))] p-6 lg:p-8">
             <div className="app-chip bg-white/80">Companion setup</div>
             <h2 id="pet-setup-title" className="mt-4 text-4xl font-semibold tracking-tight text-[rgb(var(--app-ink))]">
@@ -153,12 +158,13 @@ function PetSetupModal({
             </p>
           </div>
 
-          <div className="p-6 lg:p-8">
+          <div className="flex min-h-0 flex-col p-6 lg:p-8">
             <fieldset>
               <legend className="text-sm font-medium text-[rgb(var(--app-ink))]">
                 Choose a companion type
               </legend>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="mt-4 max-h-[min(46vh,420px)] overflow-y-auto pr-2">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {petCatalog.map((option) => (
                 <button
                   key={option.pet_type}
@@ -194,6 +200,7 @@ function PetSetupModal({
                   </div>
                 </button>
               ))}
+              </div>
               </div>
             </fieldset>
 
@@ -338,8 +345,10 @@ export default function DashboardPage() {
           setPersonalChallenges(personalRes?.challenges || []);
           setGroupChallenges(groupRes?.challenges || []);
           setPetSetupType((current) => current || catalogRes.pets?.[0]?.pet_type || "");
-          // pre-fill with their display name so the nickname input isn't just blank
-          setPetSetupNickname((petRes?.pet?.nickname || user.display_name || user.username || "").trim());
+          setPetSetupNickname(
+            (petRes?.pet?.nickname ||
+              getDefaultPetNickname(user.display_name, user.username)).trim()
+          );
         }
       } catch (err) {
         if (!cancelled) {
