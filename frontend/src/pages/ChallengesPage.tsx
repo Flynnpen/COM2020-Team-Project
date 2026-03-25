@@ -192,10 +192,7 @@ export default function ChallengesPage() {
       const res = await createChallengeSubmission(selectedChallenge.challenge_id, {
         total_co2e: total,
         evidence: evidencePayload,
-        groupId,
         group_id: groupId,
-        userId: user.user_id,
-        user_id: user.user_id,
       });
       setLastResult(
         `Submitted. Status: ${res.submission.status}. Points: ${res.submission.points}.`

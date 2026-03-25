@@ -306,7 +306,7 @@ export default function DashboardPage() {
           }),
           getPetCatalog(),
           getEarnedBadges(),
-          getUserLeaderboards(user.group_id || undefined),
+          getUserLeaderboards({ groupId: user.group_id || undefined }),
           getChallenges("personal"),
           getChallenges("group"),
         ]);
@@ -1033,10 +1033,11 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="app-stat">
-                <div className="text-xs uppercase tracking-wide app-muted">Confidence</div>
-                {/* TODO: hardcoded, should come from the calculation response */}
-                <div className="mt-1 text-xl font-semibold text-emerald-700">Medium</div>
-                <div className="mt-1 text-xs app-muted">Estimates can vary by context.</div>
+                <div className="text-xs uppercase tracking-wide app-muted">Actions logged</div>
+                <div className="mt-1 text-xl font-semibold text-[rgb(var(--app-ink))]">
+                  {filteredLogs.length}
+                </div>
+                <div className="mt-1 text-xs app-muted">Entries included in this chart view.</div>
               </div>
             </div>
 
